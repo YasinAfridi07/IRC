@@ -15,7 +15,6 @@
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "Client.hpp"
 #include "Server.hpp"
 
 #define MAX_PORT UINT16_MAX
