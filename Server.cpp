@@ -192,7 +192,7 @@ void Server::run() {
                 max_sd = sd;
             }
         }
-        int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
+        int activity = select(max_sd + 1, &readfds, NULL, NULL, NULL); // poll() equivalent, used for handling I/O operations
         if ((activity < 0) && (errno != EINTR)) {
             std::cerr << "Select error" << std::endl;
         }
