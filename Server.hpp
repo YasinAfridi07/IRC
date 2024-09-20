@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <socket.h>
 #include "Server.hpp"
 
 #define MAX_PORT UINT16_MAX

@@ -31,6 +31,7 @@ public:
     std::string _username;
     std::string _nickname;
     std::string _password;
+	int	_fd;
 
     User() {}
 

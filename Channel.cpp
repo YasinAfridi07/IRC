@@ -82,14 +82,66 @@ void Channel::setPass(std::string str)
 void Channel::setMode(char m, char sign)
 {
 	std::map<char, int>::iterator it;
-	for (it = this->_mode.begin(); it != this->_mode.end(); it++)
+	it = this->_mode.begin();
+	while ( it != this->_mode.end())
 	{
-		if (it->first == m)
+		if (it->first == m) // the key "it->first" represents the mode charactor
 		{
 			if (sign == '+')
-				it->second = 1; // what is second?
+				it->second = 1; // the key "it->second" represents if the mode is in the "+" status
 			else
 				it->second = 0;
 		}
+		it++;
 	}
-} // need to understand.
+}
+
+int Channel::isMode(char m)
+{
+	std::map<char,int>::iterator it;
+	it = this->_mode.begin();
+	while (it != this->_mode.end())
+	{
+		if(it->first == m)
+		{
+			if(it->second == 1)
+				return(1);
+			else if(it->second == 0)
+				return(0);
+		}
+		it++;
+	}
+} // need to understand more about map (what is first and second)
+
+int Channel::user_length(void)
+{
+	int length = 0;
+	it_user = users.begin();
+
+	while (it_user != users.end())
+	{
+		it_user;
+	}
+	return(length);
+
+}
+
+void Channel::addUserToChannel(User new_user_object)
+{
+	if(operators.size() == 0)
+	{
+		operators.push_back(User(new_user_object));
+	}
+	if(this->isMode('l'))
+	{
+		if(this->user_length() == this->_user_limit)
+		{
+			ErrorMsg(new_user_object._fd, ("getname() here --->" +this->getName() + "Channel is Full"), "471"); // remove "getname() ---> here after testing"
+			return ;
+		}
+	}
+	users.push_back(User(new_user_object));
+	std::string channel_welcome_msg;
+	channel_welcome_msg = "\n - Welcome to Channel \n";
+	send(new_user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
+}
