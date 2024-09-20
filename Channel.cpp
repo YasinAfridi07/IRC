@@ -3,7 +3,6 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-
 Channel::Channel(std::string str_name, std::string str_pass)
 {
 	this->name = str_name;
@@ -111,6 +110,7 @@ int Channel::isMode(char m)
 		}
 		it++;
 	}
+	return (2);
 } // need to understand more about map (what is first and second)
 
 int Channel::user_length(void)
@@ -120,7 +120,7 @@ int Channel::user_length(void)
 
 	while (it_user != users.end())
 	{
-		it_user;
+		length++;
 	}
 	return(length);
 
@@ -145,3 +145,4 @@ void Channel::addUserToChannel(User new_user_object)
 	channel_welcome_msg = "\n - Welcome to Channel \n";
 	send(new_user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
+
