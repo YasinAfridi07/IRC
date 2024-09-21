@@ -112,24 +112,24 @@ int Channel::user_length(void)
 
 }
 
-void Channel::addUserToChannel(User new_user_object)
+void Channel::addUserToChannel(User user_object)
 {
 	if(operators.size() == 0)
 	{
-		operators.push_back(User(new_user_object));
+		operators.push_back(User(user_object));
 	}
 	if(this->isMode('l'))
 	{
 		if(this->user_length() == this->_user_limit)
 		{
-			ErrorMsg(new_user_object._fd, ("getname() here --->" +this->getName() + "Channel is Full"), "471"); // remove "getname() ---> here after testing"
+			ErrorMsg(user_object._fd, ("getname() here --->" +this->getName() + "Channel is Full"), "471"); // remove "getname() ---> here after testing"
 			return ;
 		}
 	}
-	users.push_back(User(new_user_object));
+	users.push_back(User(user_object));
 	std::string channel_welcome_msg;
 	channel_welcome_msg = "\n - Welcome to Channel \n";
-	send(new_user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
+	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
 
 
