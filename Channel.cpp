@@ -2,6 +2,7 @@
 
 #include "Channel.hpp"
 #include "Server.hpp"
+#include "Command.hpp"
 
 Channel::Channel(std::string str_name, std::string str_pass)
 {
@@ -96,7 +97,7 @@ int Channel::isMode(char m)
 		it++;
 	}
 	return (2);
-} // need to understand more about map (what is first and second)
+}
 
 int Channel::user_length(void)
 {
@@ -130,7 +131,16 @@ void Channel::addUserToChannel(User new_user_object)
 	channel_welcome_msg = "\n - Welcome to Channel \n";
 	send(new_user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
-// need to connet to main funtion and execute my channel
 
 
 
+
+
+
+// void handleJoinCommand(const std::vector<std::string> &splitmsg, Command &cmd, User *user_object)
+// {
+// 	if(splitmsg.size() == 2)
+// 	{
+// 		cmd.join
+// 	}
+// }
