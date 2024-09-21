@@ -134,39 +134,3 @@ void Channel::addUserToChannel(User new_user_object)
 
 
 
-// void Channel::kickUser(std::string kick_user, const std::vector<std::string> &splitmsg, User user_object)
-// {
-// 	std::vector<User>::iterator it;
-// 	std::vector<User>::iterator it_s;
-// 	std::vector<User>::iterator it_o;
-// 	//unsigned long i = 3;
-// 	it_s = this->users.begin();
-
-// 	while (it_s != this->users.end())
-// 	{
-// 		if(it_s->_nickname == kick_user)
-// 		{
-// 			if(this->isOperator(user_object))
-// 			{
-// 				ErrorMsg(user_object._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
-// 				return ;
-// 			}
-// 			else
-// 			{
-// 				if(user_object._nickname == kick_user)
-// 				{
-// 					ErrorMsg(user_object._fd, "You cannot kick youself\n", "404");
-// 					return ;
-// 				}
-// 				send(it_s->_fd, "You have been kicked\n", strlen("You have been kicked\n"), 0);
-// 			}
-// 		}
-// 		++it_s; // needs testing
-// 	}
-// 	if (it_s == this->users.end())
-// 		ErrorMsg(user_object._fd, (kick_user + "No such nickname\n"), "401");
-
-// } // reason for kicking msg/output not added
-// // new push
-
-
