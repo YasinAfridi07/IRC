@@ -78,22 +78,7 @@ void Channel::setPass(std::string str)
 	_pass = str;
 }
 
-void Channel::setMode(char m, char sign)
-{
-	std::map<char, int>::iterator it;
-	it = this->_mode.begin();
-	while ( it != this->_mode.end())
-	{
-		if (it->first == m) // the key "it->first" represents the mode charactor
-		{
-			if (sign == '+')
-				it->second = 1; // the key "it->second" represents if the mode is in the "+" status
-			else
-				it->second = 0;
-		}
-		it++;
-	}
-}
+
 
 int Channel::isMode(char m)
 {
@@ -147,48 +132,41 @@ void Channel::addUserToChannel(User new_user_object)
 }
 // need to connet to main funtion and execute my channel
 
-int Channel::isOperator(User user)
-{
-	std::vector<User>::const_iterator it;
-	for (it = this->operators.begin(); it != this->operators.end(); it++)
-	{
-		if (it->_nickname == user._nickname)
-			return (1);
-	}
-	return (0);
-}
 
-void Channel::kickUser(std::string kick_user, const std::vector<std::string> &splitmsg, User user_object)
-{
-	std::vector<User>::iterator it;
-	std::vector<User>::iterator it_s;
-	std::vector<User>::iterator it_o;
-	unsigned long i = 3;
-	it_s = this->users.begin();
 
-	while (it_s != this->users.end())
-	{
-		if(it_s->_nickname == kick_user)
-		{
-			if(this->isOperator(user_object))
-			{
-				ErrorMsg(user_object._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
-				return ;
-			}
-			else
-			{
-				if(user_object._nickname == kick_user)
-				{
-					ErrorMsg(user_object._fd, "You cannot kick youself\n", "404");
-					return ;
-				}
-				send(it_s->_fd, "You have been kicked\n", strlen("You have been kicked\n"), 0);
-			}
-		}
-		++it_s; // needs testing
-	}
-	if (it_s == this->users.end())
-		ErrorMsg(user_object._fd, (kick_user + "No such nickname\n"), "401");
+// void Channel::kickUser(std::string kick_user, const std::vector<std::string> &splitmsg, User user_object)
+// {
+// 	std::vector<User>::iterator it;
+// 	std::vector<User>::iterator it_s;
+// 	std::vector<User>::iterator it_o;
+// 	//unsigned long i = 3;
+// 	it_s = this->users.begin();
 
-} // reason for kicking msg/output not added
-// new push
+// 	while (it_s != this->users.end())
+// 	{
+// 		if(it_s->_nickname == kick_user)
+// 		{
+// 			if(this->isOperator(user_object))
+// 			{
+// 				ErrorMsg(user_object._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
+// 				return ;
+// 			}
+// 			else
+// 			{
+// 				if(user_object._nickname == kick_user)
+// 				{
+// 					ErrorMsg(user_object._fd, "You cannot kick youself\n", "404");
+// 					return ;
+// 				}
+// 				send(it_s->_fd, "You have been kicked\n", strlen("You have been kicked\n"), 0);
+// 			}
+// 		}
+// 		++it_s; // needs testing
+// 	}
+// 	if (it_s == this->users.end())
+// 		ErrorMsg(user_object._fd, (kick_user + "No such nickname\n"), "401");
+
+// } // reason for kicking msg/output not added
+// // new push
+
+

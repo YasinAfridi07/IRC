@@ -44,9 +44,9 @@ class Channel
 
 		void addUserToChannel(User new_user_object);
 		void kickUser(std::string user_kick, const std::vector<std::string>& splitmsg, User user);
-		void exec_mode(std::string mode, User &user, std::string arg);
+		void exec_mode(std::string mode, User &user_object, std::string arg);
 		std::vector<User>::iterator user_in_chan(int fd);
-		std::vector<User>::iterator op_in_chan(int fd);
+		std::vector<User>::iterator channel_operator(int fd);
 		std::vector<User>::iterator inv_in_chan(int fd);
 		int user_length(void); // changed
 
