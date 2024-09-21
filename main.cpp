@@ -6,11 +6,12 @@
 /*   By: yusman <yusman@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/17 17:39:26 by yusman            #+#    #+#             */
-/*   Updated: 2024/09/17 18:03:23 by yusman           ###   ########.fr       */
+/*   Updated: 2024/09/21 02:46:46 by yusman           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include "Channel.hpp"
 
 
 int main(int ac, char **av)
