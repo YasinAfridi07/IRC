@@ -8,10 +8,7 @@
 #include <sstream>
 class User;
 
-namespace Extra // what is namespace?
-{
 
-}
 void ErrorMsg(int fd, const std::string &message, const std::string &key);
 
 #endif

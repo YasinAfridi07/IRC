@@ -1,6 +1,7 @@
 {
-	"files.associations": {
-		"utility": "cpp",
-		"vector": "cpp"
-	}
+  "files.associations": {
+    "utility": "cpp",
+    "vector": "cpp"
+  },
+  "C_Cpp_Runner.msvcBatchPath": ""
 }

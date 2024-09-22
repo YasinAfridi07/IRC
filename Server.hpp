@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "Server.hpp"
+#include <cstdlib>
 
 #define MAX_PORT UINT16_MAX
 #define MAX_BUFFER 1024

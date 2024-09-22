@@ -2,6 +2,7 @@
 
 #include "Channel.hpp"
 #include "Server.hpp"
+#include <cstring>
 
 Channel::Channel(std::string str_name, std::string str_pass)
 {
@@ -20,7 +21,6 @@ Channel::Channel(std::string str_name, std::string str_pass)
 
 Channel::~Channel(void)
 {
-
 }
 
 // GETTERS
