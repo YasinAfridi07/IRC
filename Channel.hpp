@@ -7,6 +7,12 @@
 #include <map>
 #include <vector>
 #include "Extra.hpp"
+#include <cstring>
+#include <cstdlib>
+#include <stdlib.h>
+
+
+
 
 class User;
 class Channel

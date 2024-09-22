@@ -133,8 +133,10 @@ void Channel::addUserToChannel(User user_object)
 }
 
 
-
-
+// void Command::join(std::string channel_s, std::string key_s, User user_object)
+// {
+	
+// }
 
 
 // void handleJoinCommand(const std::vector<std::string> &splitmsg, Command &cmd, User *user_object)
