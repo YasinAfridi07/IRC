@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include <cstring>
 #include "Command.hpp"
+#define JOIN "JOIN"
 
 Channel::Channel(std::string str_name, std::string str_pass)
 {
@@ -132,17 +133,54 @@ void Channel::addUserToChannel(User user_object)
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
 
+void handleJoinCommand(const std::vector<std::string>& splitmsg, Command& command, User* user)
+{
+	if (splitmsg.size() == 2)
+	{
+		command.join(splitmsg.at(1), "", *user);
+	} else if (splitmsg.size() == 3)
+	{
+		command.join(splitmsg.at(1), splitmsg.at(2), *user);
+	}
+	else
+	{
+		return ;
+	}
+}
 
-// void Command::join(std::string channel_s, std::string key_s, User user_object)
-// {
 
-// }
+void Command::join(std::string channel_s, std::string key_s, User user_object)
+{
+	std::vector<std::string> channel_split = ft_split(channel_s, ',');
+	std::vector<std::string> key_split = ft_split(key_s, ',');
+	std::vector<Channel>::iterator it;
+	std::vector<User>::iterator it_invite;
+	std::vector<std::string>::iterator it_split;
+	std::vector<std::string>::iterator it_key;
+
+	it_key = key_split.begin();
+	it_split = channel_split.begin();
+
+	while (it_split != channel_split.end())
+	{
+		
+		it_split++;
+	}
 
 
-// void handleJoinCommand(const std::vector<std::string> &splitmsg, Command &cmd, User *user_object)
-// {
-// 	if(splitmsg.size() == 2)
-// 	{
-// 		cmd.join
-// 	}
-// }
+}
+
+
+void user_cmds(User* user, std::vector<std::string> splitmsg)
+{
+    if (splitmsg.empty()) {
+        return;
+    }
+
+    Command cmd;
+    std::string cmdType = splitmsg.at(0);
+    if (cmdType == JOIN)
+	{
+        handleJoinCommand(splitmsg, cmd, user);
+    }
+} // tim part
