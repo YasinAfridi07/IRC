@@ -18,8 +18,9 @@ class Command{
 		Command(void);
 		~Command(void);
 
-		// - MEMEBER FUNCTIONS 
-
+		void join(std::string channel_s, std::string key_s, User user_object); // Yasin
+		
+		std::vector<std::string> ft_split(std::string str, char delimiter);
 };
 
 #endif

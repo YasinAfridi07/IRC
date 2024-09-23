@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <cstring>
 #include "Server.hpp"
+#include "Channel.hpp"
 
 std::string Server::_password = "";
 std::string Server::bufferStr = "";
