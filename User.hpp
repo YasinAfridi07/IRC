@@ -15,7 +15,6 @@
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "Client.hpp"
 #include "Server.hpp"
 
 #define MAX_PORT UINT16_MAX
@@ -32,12 +31,14 @@ public:
     std::string _username;
     std::string _nickname;
     std::string _password;
+	int	_fd;
 
     User() {}
 
     User(const std::string &user, const std::string &nick, const std::string &pass)
         : _username(user), _nickname(nick), _password(pass) {}
 
+    void execute(std::string cmd, User *it);
     void setUser(const std::string &user) { _username = user; }
     void setNick(const std::string &nick) { _nickname = nick; }
     void setPass(const std::string &pass) { _password = pass; }
