@@ -96,12 +96,15 @@ void Server::handleClientDisconnection(size_t i) {
 }
 
 // Обработка команды USER
-void Server::handleUserCommand(size_t i, const std::string& message) {
+void Server::handleUserCommand(size_t i, const std::string& message)
+{
     if (!users[i].getUser().empty()) {
         std::cerr << "Error: USER already set and cannot be changed" << std::endl;
         const char *errorMsg = "Error: USER already set and cannot be changed.\n";
         send(sd, errorMsg, strlen(errorMsg), 0);
-    } else {
+    }
+	else
+	{
         std::string user = message.substr(5); // Извлекаем имя пользователя после "USER "
         users[i].setUser(user);
         std::cout << "Set USER: " << user << std::endl;
@@ -109,12 +112,16 @@ void Server::handleUserCommand(size_t i, const std::string& message) {
 }
 
 // Обработка команды NICK
-void Server::handleNickCommand(size_t i, const std::string& message) {
-    if (!users[i].getNick().empty()) {
+void Server::handleNickCommand(size_t i, const std::string& message)
+{
+    if (!users[i].getNick().empty())
+	{
         std::cerr << "Error: NICK already set and cannot be changed" << std::endl;
         const char *errorMsg = "Error: NICK already set and cannot be changed.\n";
         send(sd, errorMsg, strlen(errorMsg), 0);
-    } else {
+    }
+	else
+	{
         std::string nick = message.substr(5); // Извлекаем никнейм после "NICK "
         users[i].setNick(nick);
         std::cout << "Set NICK: " << nick << std::endl;
@@ -153,11 +160,14 @@ bool Server::isUserAuthorized(size_t i) {
     return true;
 }
 
-void Server::handleClientMessages() {
-    for (size_t i = 0; i < _fds.size(); i++) {
+void Server::handleClientMessages()
+{
+    for (size_t i = 0; i < _fds.size(); i++)
+	{
         sd = _fds[i];
         if (FD_ISSET(sd, &readfds)) {
-            if ((valread = read(sd, c_buffer, BUFFER_SIZE)) == 0) {
+            if ((valread = read(sd, c_buffer, BUFFER_SIZE)) == 0)
+			{
                 handleClientDisconnection(i);
             } else {
                 c_buffer[valread] = '\0';
@@ -202,5 +212,9 @@ void Server::run() {
         handleClientMessages();
     }
 }
+// line 199 put "serverSocket" and "&readfds" in server class
+// for Tim ^^^
+//hi
+
 
 

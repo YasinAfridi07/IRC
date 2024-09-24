@@ -1,7 +1,7 @@
 {
-	"files.associations": {
-		"__string": "cpp",
-		"algorithm": "cpp",
-		"type_traits": "cpp"
-	}
+  "files.associations": {
+    "utility": "cpp",
+    "vector": "cpp"
+  },
+  "C_Cpp_Runner.msvcBatchPath": ""
 }
