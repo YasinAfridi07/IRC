@@ -163,7 +163,7 @@ void Command::join(std::string channel_s, std::string key_s, User user_object)
 
 	while (it_split != channel_split.end())
 	{
-		
+
 		it_split++;
 	}
 
