@@ -18,8 +18,8 @@ class Command{
 		Command(void);
 		~Command(void);
 
-		void join(std::string channel_s, std::string key_s, User user_object); // Yasin
-		
+		void join(std::string channel_name, std::string key_pass, User user_object); // Yasin
+
 		std::vector<std::string> ft_split(std::string str, char delimiter);
 };
 

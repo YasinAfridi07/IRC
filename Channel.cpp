@@ -2,8 +2,8 @@
 
 #include "Channel.hpp"
 #include "Server.hpp"
-#include <cstring>
 #include "Command.hpp"
+#include <cstring>
 #define JOIN "JOIN"
 
 Channel::Channel(std::string str_name, std::string str_pass)
@@ -81,7 +81,6 @@ void Channel::setPass(std::string str)
 }
 
 
-
 int Channel::isMode(char m)
 {
 	std::map<char,int>::iterator it;
@@ -132,6 +131,18 @@ void Channel::addUserToChannel(User user_object)
 	channel_welcome_msg = "\n - Welcome to Channel \n";
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
+void user_cmds(User* user, std::vector<std::string> splitmsg)
+{
+    if (splitmsg.empty())
+        return;
+
+    Command cmd;
+    std::string cmdType = splitmsg.at(0);
+    if (cmdType == JOIN)
+	{
+        handleJoinCommand(splitmsg, cmd, user);
+    }
+} // tim part
 
 void handleJoinCommand(const std::vector<std::string>& splitmsg, Command& command, User* user)
 {
@@ -149,38 +160,88 @@ void handleJoinCommand(const std::vector<std::string>& splitmsg, Command& comman
 }
 
 
-void Command::join(std::string channel_s, std::string key_s, User user_object)
+void Command::join(std::string channel_s, std::string key_s, User user)
 {
-	std::vector<std::string> channel_split = ft_split(channel_s, ',');
-	std::vector<std::string> key_split = ft_split(key_s, ',');
-	std::vector<Channel>::iterator it;
-	std::vector<User>::iterator it_invite;
-	std::vector<std::string>::iterator it_split;
-	std::vector<std::string>::iterator it_key;
+    std::vector<Channel>::iterator it;
+    std::vector<User>::iterator it_i;
 
-	it_key = key_split.begin();
-	it_split = channel_split.begin();
-
-	while (it_split != channel_split.end())
-	{
-
-		it_split++;
-	}
-
-
-}
-
-
-void user_cmds(User* user, std::vector<std::string> splitmsg)
-{
-    if (splitmsg.empty()) {
+    // check if the channel name is valid
+    if (channel_s.at(0) != '#' && channel_s.at(0) != '&')
+    {
+        send(user._fd, INVALID_CHAN, strlen(INVALID_CHAN), 0);
+        return;
+    }
+    else if (channel_s.size() <= 1)
+    {
+        send(user._fd, INVALID_CHAN_NAME, strlen(INVALID_CHAN_NAME), 0);
         return;
     }
 
-    Command cmd;
-    std::string cmdType = splitmsg.at(0);
-    if (cmdType == JOIN)
-	{
-        handleJoinCommand(splitmsg, cmd, user);
+    // Check if the channel exists
+    it = chan_exist(channel_s);
+    if (it != Server::_channels.end())
+    {
+        // If the user is already in the channel
+        if (it->isUser(user))
+        {
+            sendErrorMessage(user._fd, (user.nickName + " " + it->getName() + YES_USR_M), ERR_USERONCHANNEL);
+            return;
+        }
+
+        // Handle key (password) for the channel
+        if (key_s != "")
+        {
+            if (it->isMode('k') == 1) // If channel requires a key
+            {
+                if (key_s == it->getPass()) // Correct key provided
+                {
+                    if (it->isMode('i') == 1) // Check invite-only mode
+                    {
+                        if (it->isInvited(user))
+                        {
+                            it_i = it->inv_in_chan(user._fd);
+                            if (it_i != it->invites.end())
+                                it->invites.erase(it_i);
+                            it->addUser(user);
+                        }
+                        else
+                            sendErrorMessage(user._fd, (it->getName() + NO_INV_M), ERR_INVITEONLYCHAN);
+                    }
+                    else
+                        it->addUser(user);
+                }
+                else
+                    sendErrorMessage(user._fd, (it->getName() + NO_KEY_M), ERR_BADCHANNELKEY);
+            }
+            else
+                sendErrorMessage(user._fd, "Key Not required to join channel\n", ERR_BADCHANNELKEY);
+        }
+        else
+        {
+            // If no key is provided, check invite-only mode
+            if (it->isMode('i') == 1)
+            {
+                if (it->isInvited(user))
+                {
+                    it_i = it->inv_in_chan(user._fd);
+                    if (it_i != it->invites.end())
+                        it->invites.erase(it_i);
+                    it->addUser(user);
+                }
+                else
+                    sendErrorMessage(user._fd, (it->getName() + NO_INV_M), ERR_INVITEONLYCHAN);
+            }
+            else
+                it->addUser(user);
+        }
     }
-} // tim part
+    else
+    {
+        // If channel does not exist, create a new one
+        Channel new_channel(channel_s, key_s);
+        new_channel.addUser(user);
+        Server::_channels.push_back(new_channel);
+    }
+}
+
+
