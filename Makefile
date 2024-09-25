@@ -1,7 +1,7 @@
 NAME = main
 
-SRC = main.cpp Server.cpp
-#Channel.cpp Extra.cpp Mode_Parsing.cpp
+SRC = main.cpp Channel.cpp Server.cpp Extra.cpp Mode_Parsing.cpp Command.cpp
+
 CXX = c++
 
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98

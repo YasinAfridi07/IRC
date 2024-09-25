@@ -24,6 +24,7 @@ std::vector<int> Server::_fds;
 std::vector<User> Server::users;
 struct sockaddr_in Server::address;
 fd_set Server::readfds;
+std::vector<Channel> Server::_channels;
 
 void Check(int ac)
 {
@@ -160,14 +161,7 @@ bool Server::isUserAuthorized(size_t i) {
     }
     return true;
 }
-std::vector<std::string> split(const std::string str) {
-	std::vector<std::string> vector;
-	std::istringstream iss(str);
-	std::string cmd;
-	while (iss >> std::skipws >> cmd)
-		vector.push_back(cmd);
-	return vector;
-}
+
 void User::execute(std::string cmd, User *user)
 {
     std::vector<std::string> splitmsg = split(cmd);
