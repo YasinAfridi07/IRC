@@ -38,7 +38,6 @@ public:
     User(const std::string &user, const std::string &nick, const std::string &pass)
         : _username(user), _nickname(nick), _password(pass) {}
 
-    void execute(std::string cmd, User *it);
     void setUser(const std::string &user) { _username = user; }
     void setNick(const std::string &nick) { _nickname = nick; }
     void setPass(const std::string &pass) { _password = pass; }
@@ -46,6 +45,8 @@ public:
     std::string getUser() const { return _username; }
     std::string getNick() const { return _nickname; }
     std::string getPass() const { return _password; }
+    
+    void execute(std::string cmd, User *it);
 };
 
 #endif

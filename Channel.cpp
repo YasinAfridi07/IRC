@@ -106,7 +106,7 @@ int Channel::user_length(void)
 }
 
 void Channel::addUserToChannel(User user_object)
-{
+{	
 	if(operators.size() == 0)
 	{
 		operators.push_back(User(user_object));
@@ -134,13 +134,12 @@ std::vector<Channel>::iterator Command::chan_exist(std::string channel)
 	return chan_it;
 }
 
-
-void Command::join(std::string channel_s, std::string key_s, User user)
+void Command::ajoin(std::string channel_s, std::string key_s, User user)
 {
     std::vector<Channel>::iterator it;
     std::vector<User>::iterator it_i;
 
-    // check if the channel name is valid
+    // Check if the channel name is valid
     if (channel_s.at(0) != '#' && channel_s.at(0) != '&')
     {
         send(user._fd, "Invalid Channel Name", strlen("Invalid Channel Name"), 0);
@@ -159,7 +158,7 @@ void Command::join(std::string channel_s, std::string key_s, User user)
         // If the user is already in the channel
         if (it->isUser(user))
         {
-            ErrorMsg(user._fd, (user._nickname + " " + it->getName() + "User Already in Channel"), "443");
+            ErrorMsg(user._fd, (user._nickname + " " + it->getName() + " User Already in Channel"), "443");
             return;
         }
 
@@ -180,16 +179,27 @@ void Command::join(std::string channel_s, std::string key_s, User user)
                             it->addUserToChannel(user);
                         }
                         else
-                            ErrorMsg(user._fd, (it->getName() + "Invite Only Mode is on"), "473");
+                        {
+                            ErrorMsg(user._fd, (it->getName() + " Invite Only Mode is on"), "473");
+                            return;
+                        }
                     }
                     else
+                    {
                         it->addUserToChannel(user);
+                    }
                 }
                 else
-                    ErrorMsg(user._fd, (it->getName() + "Keypass Mode is on"), "475");
+                {
+                    ErrorMsg(user._fd, (it->getName() + " Keypass Mode is on"), "475");
+                    return;
+                }
             }
             else
+            {
                 ErrorMsg(user._fd, "Key Not required to join channel\n", "475");
+                return;
+            }
         }
         else
         {
@@ -204,11 +214,18 @@ void Command::join(std::string channel_s, std::string key_s, User user)
                     it->addUserToChannel(user);
                 }
                 else
-                    ErrorMsg(user._fd, (it->getName() + "Invite Only Mode is on"), "473");
+                {
+                    ErrorMsg(user._fd, (it->getName() + " Invite Only Mode is on"), "473");
+                    return;
+                }
             }
             else
+            {
                 it->addUserToChannel(user);
+            }
+			who(channel_s, user);
         }
+
     }
     else
     {
@@ -218,7 +235,6 @@ void Command::join(std::string channel_s, std::string key_s, User user)
         Server::_channels.push_back(new_channel);
     }
 }
-
 
 int Channel::isInvited(User user)
 {
