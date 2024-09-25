@@ -12,8 +12,11 @@
 #include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "Server.hpp"
 #include <cstdlib>
+#include "Channel.hpp"
+#include "User.hpp"
+#include "Command.hpp"
+#include "Extra.hpp"
 
 #define MAX_PORT UINT16_MAX
 #define MAX_BUFFER 1024
@@ -24,7 +27,6 @@
 #define GREEN "\033[32m"
 #define RESET "\033[0m"
 
-#include "User.hpp"
 
 class Server
 {
@@ -60,8 +62,8 @@ public:
 	};
 	static std::vector<int> _fds;
 	static std::vector<User> users;  // Контейнер для пользователей
+	static std::vector<Channel> _channels;
     static void handleClientMessages();
-	// static std::vector<Channel> _channels;
 	static void openSocket(void);
 	static void run(void);
 	static void acceptConnection(void);

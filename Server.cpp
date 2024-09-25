@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <cstring>
 #include "Server.hpp"
-#include "Channel.hpp"
 
 std::string Server::_password = "";
 std::string Server::bufferStr = "";
@@ -24,6 +23,7 @@ std::vector<int> Server::_fds;
 std::vector<User> Server::users;
 struct sockaddr_in Server::address;
 fd_set Server::readfds;
+// std::vector<Channel> Server::_channels;
 
 void Check(int ac)
 {

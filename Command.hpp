@@ -5,10 +5,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "Server.hpp"
+
 
 class User;
 class Channel;
-
 class Command{
 	private:
 		std::string message;
@@ -21,6 +22,7 @@ class Command{
 		void join(std::string channel_name, std::string key_pass, User user_object); // Yasin
 
 		std::vector<std::string> ft_split(std::string str, char delimiter);
+		std::vector<Channel>::iterator chan_exist(std::string channel);
 };
 
 #endif

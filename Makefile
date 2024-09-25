@@ -1,6 +1,6 @@
 NAME = main
 
-SRC = main.cpp Channel.cpp Server.cpp Extra.cpp Mode_Parsing.cpp
+SRC = main.cpp Channel.cpp Server.cpp Extra.cpp Mode_Parsing.cpp Command.cpp
 
 CXX = c++
 

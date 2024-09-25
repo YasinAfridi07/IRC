@@ -1,7 +1,6 @@
 
 
 #include "Server.hpp"
-#include "Channel.hpp"
 
 
 void ErrorMsg(int fd, const std::string &error_msg, const std::string &code)
