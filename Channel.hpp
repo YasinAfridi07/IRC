@@ -8,6 +8,13 @@
 #include <vector>
 #include "Extra.hpp"
 #include <cstring>
+#include <cstring>
+#include <cstdlib>
+#include <stdlib.h>
+#include "Extra.hpp"
+
+
+
 
 class User;
 class Channel
@@ -44,17 +51,17 @@ class Channel
 		void setMode(char m, char sign);
 
 		void addUserToChannel(User new_user_object);
-		void kickUser(std::string user_kick, const std::vector<std::string>& splitmsg, User user);
-		void exec_mode(std::string mode, User &user_object, std::string arg);
+		//void kickUser(std::string user_kick, const std::vector<std::string>& splitmsg, User user); // tim
+		void exec_mode(std::string mode, User &user_object, std::string arg); // ayan
 		std::vector<User>::iterator user_in_chan(int fd);
 		std::vector<User>::iterator channel_operator(int fd);
 		std::vector<User>::iterator inv_in_chan(int fd);
-		int user_length(void); // changed
+		int user_length(void);
 
-		int isInvited(User user);
-		int isMode(char m);
+		int isInvited(User user); // tim
+		int isMode(char m); // ayan
 		int isOperator(User user);
-		int isUser(User user);
+		int isUser(User user); //  tim
 
 
 };

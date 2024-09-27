@@ -65,7 +65,7 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg)
 		it_s = this->users.begin();
 		while (it_s != this->users.end())
 		{
-			if(it_s->_nickname == arg) // need to understand more 
+			if(it_s->_nickname == arg) // need to understand more
 				break;
 			++it_s; // test this loop
 		}

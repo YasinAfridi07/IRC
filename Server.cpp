@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <cstring>
 #include "Server.hpp"
+#include "Channel.hpp"
 
 std::string Server::_password = "";
 std::string Server::bufferStr = "";
@@ -107,7 +108,7 @@ void Server::handleUserCommand(size_t i, const std::string& message)
 	{
         std::string user = message.substr(5); // Извлекаем имя пользователя после "USER "
         users[i].setUser(user);
-        std::cout << "Set USER: " << user << std::endl;
+        std::cout << "Set USER: " << user;
     }
 }
 
@@ -124,7 +125,7 @@ void Server::handleNickCommand(size_t i, const std::string& message)
 	{
         std::string nick = message.substr(5); // Извлекаем никнейм после "NICK "
         users[i].setNick(nick);
-        std::cout << "Set NICK: " << nick << std::endl;
+        std::cout << "Set NICK: " << nick;
     }
 }
 
@@ -159,18 +160,31 @@ bool Server::isUserAuthorized(size_t i) {
     }
     return true;
 }
-
+std::vector<std::string> split(const std::string str) {
+	std::vector<std::string> vector;
+	std::istringstream iss(str);
+	std::string cmd;
+	while (iss >> std::skipws >> cmd)
+		vector.push_back(cmd);
+	return vector;
+}
+void User::execute(std::string cmd, User *user)
+{
+    std::vector<std::string> splitmsg = split(cmd);
+    std::cout << user->_nickname << ":" << cmd << std::endl;
+}
 void Server::handleClientMessages()
 {
     for (size_t i = 0; i < _fds.size(); i++)
-	{
+    {
         sd = _fds[i];
+        std::cout << "sd: " << sd << std::endl;
         if (FD_ISSET(sd, &readfds)) {
             if ((valread = read(sd, c_buffer, BUFFER_SIZE)) == 0)
-			{
+            {
                 handleClientDisconnection(i);
             } else {
-                c_buffer[valread] = '\0';
+                c_buffer[valread - 1] =  '\0';
                 std::string message(c_buffer);
 
                 // Обрабатываем команды
@@ -181,12 +195,13 @@ void Server::handleClientMessages()
                 } else if (message.substr(0, 4) == "PASS") {
                     handlePassCommand(i, message);
                 } else if (isUserAuthorized(i)) {
-                    std::cout << "Authorized message from " << users[i].getNick() << ": " << message << std::endl;
+                    users[i].execute(message, &users[i]);
                 }
             }
         }
     }
 }
+
 
 void Server::run() {
     while (true) {
