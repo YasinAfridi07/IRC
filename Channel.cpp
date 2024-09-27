@@ -124,14 +124,16 @@ void Channel::addUserToChannel(User user_object)
 	channel_welcome_msg = "\n - Welcome to Channel \n";
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
-std::vector<Channel>::iterator Command::chan_exist(std::string channel)
+
+int Channel::isUser(User user)
 {
-	for (this->chan_it = Server::_channels.begin(); this->chan_it != Server::_channels.end(); chan_it++)
+	std::vector<User>::const_iterator it;
+	for (it = this->users.begin(); it != this->users.end(); it++)
 	{
-		if (chan_it->getName() == channel)
-			return chan_it;
+		if (it->_nickname == user._nickname)
+			return (1);
 	}
-	return chan_it;
+	return (0);
 }
 
 void Command::ajoin(std::string channel_s, std::string key_s, User user)
@@ -152,7 +154,7 @@ void Command::ajoin(std::string channel_s, std::string key_s, User user)
     }
 
     // Check if the channel exists
-    it = chan_exist(channel_s);
+    it = channel_exist(channel_s);
     if (it != Server::_channels.end())
     {
         // If the user is already in the channel
@@ -256,16 +258,89 @@ std::vector<User>::iterator Channel::inv_in_chan(int fd)
 	return (it_invites);
 }
 
-int Channel::isUser(User user)
+std::vector<Channel>::iterator Command::channel_exist(std::string channel)
 {
-	std::vector<User>::const_iterator it;
-	for (it = this->users.begin(); it != this->users.end(); it++)
+	this->channel_it = Server::_channels.begin();
+	while (this->channel_it != Server::_channels.end())
 	{
-		if (it->_nickname == user._nickname)
-			return (1);
+		if (channel_it->getName() == channel)
+			return channel_it;
+		channel_it++;
 	}
-	return (0);
+	return channel_it;
 }
 
-// hello my name is yasin
-// hi
+std::vector<User>::iterator Command::user_exist(std::string nick)
+{
+	this->user_it = Server::users.begin();
+	while (this->user_it != Server::users.end())
+	{
+		if (user_it->_nickname == nick)
+			return user_it;
+		user_it++;
+	}
+	return user_it;
+}
+
+void Command::privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user)
+{
+    std::vector<Channel>::iterator it_channel;
+    std::vector<User>::iterator it_user;
+    unsigned long i = 2;
+
+    // Check if the receiver is a user
+    it_user = user_exist(receiver);
+    if (it_user == Server::users.end())
+    {
+        // If not a user, check if it's a channel
+        it_channel = channel_exist(receiver);
+        if (it_channel != Server::_channels.end())
+        {
+            // Check if the user is part of the channel
+            if (it_channel->isUser(user))
+            {
+                std::vector<User> temp_users = it_channel->getUsers();
+                for (std::vector<User>::iterator it = temp_users.begin(); it != temp_users.end(); ++it)
+                {
+                    if (it->_fd != user._fd)
+                    {
+                        // Send message to all users in the channel except the sender
+                        send(it->_fd, (user._nickname + " :").c_str(), strlen((user._nickname + " :").c_str()), 0);
+                        while (i < splitmsg.size())
+                        {
+                            send(it->_fd, (splitmsg.at(i)).c_str(), strlen((splitmsg.at(i)).c_str()), 0);
+                            send(it->_fd, " ", strlen(" "), 0);
+                            i++;
+                        }
+                        send(it->_fd, "\n", strlen("\n"), 0);
+                        i = 2;
+                    }
+                }
+            }
+            else
+                ErrorMsg(user._fd, (it_channel->getName() + " User Are Not Part of Channel"), "404");
+        }
+    }
+    else
+    {
+        // Handle the case if the receiver is a user
+        if (user._fd == it_user->_fd)
+            send(it_user->_fd, "Can Not Send MSG To Yourself\n", strlen("Can Not Send MSG To Yourself\n"), 0);
+        else
+        {
+            send(it_user->_fd, (user._nickname + " :").c_str(), strlen((user._nickname + " :").c_str()), 0);
+            while (i < splitmsg.size())
+            {
+                send(it_user->_fd, (splitmsg.at(i)).c_str(), strlen((splitmsg.at(i)).c_str()), 0);
+                send(it_user->_fd, " ", strlen(" "), 0);
+                i++;
+            }
+            send(it_user->_fd, "\n", strlen("\n"), 0);
+            i = 2;
+        }
+    }
+
+    // If receiver is not found as user or channel, send error message
+    if (it_user == Server::users.end() && it_channel == Server::_channels.end())
+        ErrorMsg(user._fd, (receiver + " :Invalid Nickname or Channel.\n"), "401");
+}

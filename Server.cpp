@@ -173,7 +173,7 @@ bool Server::isUserAuthorized(size_t i) {
 void Command::who(std::string channel_s, User user)
 {
     // Find the channel
-    std::vector<Channel>::iterator it = chan_exist(channel_s);
+    std::vector<Channel>::iterator it = channel_exist(channel_s);
     if (it == Server::_channels.end())
     {
         ErrorMsg(user._fd, "Channel does not exist.", "403");
@@ -225,9 +225,32 @@ void User::execute(std::string mes, User *user)
 		    return ;
         }
     }
-    else if(cmdType == "WHO")
+    else if(cmdType == "/CHANUSER")
     {
         cmd.who(splitmsg.at(1), *user);
+    }
+    else if(cmdType == "PRIVMSG")
+    {
+            if (splitmsg.size() >= 3) 
+            {
+		        cmd.privmsg(splitmsg.at(1), splitmsg, *user); // second argument will be the split message for mutiple words
+	        } 
+            else if (splitmsg.size() == 2) 
+            {
+		        // no such nickname, if nickname doesn't exist
+		        ErrorMsg(user->_fd, " Min 3 arg required\n", "412");
+	        } 
+            else if(splitmsg.size() == 1) 
+            {
+		        ErrorMsg(user->_fd, "Need 2 more arg after PRIVMSG ", "401");
+	        }
+             else 
+            { // if PRIVMSG nickname exist and msg dosent exist
+		        std::string S = "461";
+		        S.append(" :Not enough parameters\r\n");
+		        send(user->_fd, S.c_str(), strlen(S.c_str()), 0);
+		        return;
+	        }
     }
     
 
