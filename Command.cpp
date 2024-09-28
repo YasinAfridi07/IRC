@@ -2,6 +2,20 @@
 #include "Command.hpp"
 #include "User.hpp"
 
+
+Command::Command(void)
+{
+	// defualt constructor
+	this->message = "";
+	
+}
+
+Command::~Command(void)
+{
+	// destructor
+}
+
+
 std::vector<std::string> Command::ft_split(std::string str, char delimiter)
 {
 	std::vector<std::string> substrings;

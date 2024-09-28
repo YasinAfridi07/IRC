@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-class User;
-
 
 void ErrorMsg(int fd, const std::string &message, const std::string &key);
 std::vector<std::string> split(const std::string str);

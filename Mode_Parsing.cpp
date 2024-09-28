@@ -1,5 +1,4 @@
-#include "Channel.hpp"
-#include "Server.hpp"
+ #include "Server.hpp"
 
 
 int Channel::isOperator(User user)
@@ -15,17 +14,17 @@ int Channel::isOperator(User user)
 	return (0);
 } // this function is used for checking if the user is an operator
 
-std::vector<User>::iterator Channel::channel_operator(int fd)
-{
-	this->it_operators = this->operators.begin();
-	while ( this->it_operators != this->operators.end())
-	{
-		if (this->it_operators->_fd == fd)
-			return (it_operators);
-		it_operators++;
-	}
-	return (it_operators);
-} // this function is used to get the user fd
+// std::vector<User>::iterator Channel::channel_operator(int fd)
+// {
+// 	this->it_operators = this->operators.begin();
+// 	while ( this->it_operators != this->operators.end())
+// 	{
+// 		if (this->it_operators->_fd == fd)
+// 			return (it_operators);
+// 		it_operators++;
+// 	}
+// 	return (it_operators);
+// } // this function is used to get the user fd
 
 
 void Channel::setMode(char m, char sign)
@@ -101,16 +100,16 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg)
 		else
 			ErrorMsg(user_object._fd, (arg + "No such nickname\n"),  "401"); // test arg
 
-	}
-	else if(mode[1] == 'l')
-	{
-		if(mode[0] == '+')
-		{
-			if(std::atoi(arg.c_str()) <= 0)
-				send(user_object._fd, "Invalid Limit Number\n", strlen("Invalid Limit Number\n"), 0);
-			else
-				this->_user_limit = std::atoi(arg.c_str());
-		}
-	}
-	this->setMode(mode[1], mode[0]);
-}
+// 	}
+// 	else if(mode[1] == 'l')
+// 	{
+// 		if(mode[0] == '+')
+// 		{
+// 			if(std::atoi(arg.c_str()) <= 0)
+// 				send(user_object._fd, "Invalid Limit Number\n", strlen("Invalid Limit Number\n"), 0);
+// 			else
+// 				this->_user_limit = std::atoi(arg.c_str());
+// 		}
+// 	}
+// 	this->setMode(mode[1], mode[0]);
+// }

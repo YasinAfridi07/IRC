@@ -1,7 +1,6 @@
 
 
 #include "Server.hpp"
-#include "Channel.hpp"
 
 
 void ErrorMsg(int fd, const std::string &error_msg, const std::string &code)
@@ -24,11 +23,12 @@ std::vector<std::string> ft_split(std::string str, char delimiter)
 {
 	std::vector<std::string> substrings;
 	std::string substring = "";
-	for (size_t i = 0; i < str.length(); i++)
+	size_t i = 0;
+	while ( i < str.length())
 	{
 		if (str[i] != delimiter)
 		{
-			substring += str[i];
+			substring = substring + str[i];
 		}
 		else
 		{
@@ -38,6 +38,7 @@ std::vector<std::string> ft_split(std::string str, char delimiter)
 			i--;
 			substring = "";
 		}
+		i++;
 	}
 	substrings.push_back(substring);
 	return (substrings);

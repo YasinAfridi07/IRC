@@ -1,4 +1,3 @@
-
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
@@ -6,13 +5,11 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "Extra.hpp"
 #include <cstring>
 #include <cstring>
 #include <cstdlib>
 #include <stdlib.h>
-#include "Extra.hpp"
-
+#include "Server.hpp"
 
 
 
@@ -24,8 +21,8 @@ class Channel
 		std::string _pass;
 		std::string _topic;
 		std::map<char, int> _mode;
-		Channel(); // why private
 	public:
+		Channel(); // why private
 		std::string name;
 		std::vector<User> invites;
 		std::vector<User> operators;
@@ -52,16 +49,20 @@ class Channel
 
 		void addUserToChannel(User new_user_object);
 		//void kickUser(std::string user_kick, const std::vector<std::string>& splitmsg, User user); // tim
-		void exec_mode(std::string mode, User &user_object, std::string arg); // ayan
+		//void exec_mode(std::string mode, User &user_object, std::string arg); // ayan
 		std::vector<User>::iterator user_in_chan(int fd);
 		std::vector<User>::iterator channel_operator(int fd);
 		std::vector<User>::iterator inv_in_chan(int fd);
 		int user_length(void);
 
+
 		int isInvited(User user); // tim
 		int isMode(char m); // ayan
 		int isOperator(User user);
 		int isUser(User user); //  tim
+
+
+
 
 
 };
