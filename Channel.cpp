@@ -123,6 +123,15 @@ void Channel::addUserToChannel(User user_object)
 	std::string channel_welcome_msg;
 	channel_welcome_msg = "\n - Welcome to Channel \n";
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
+
+	std::string join_message = user_object._nickname + " has joined the channel " + this->name + "!\n";
+	for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it)
+	{
+		if (it->_fd != user_object._fd) // Exclude the new user from receiving the message
+		{
+			send(it->_fd, join_message.c_str(), strlen(join_message.c_str()), 0);
+		}
+	}
 }
 
 
@@ -296,4 +305,50 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
     // If receiver is not found as user or channel, send error message
     if (it_user == Server::users.end() && it_channel == Server::_channels.end())
         ErrorMsg(user._fd, (receiver + " :Invalid Nickname or Channel.\n"), "401");
+}
+
+void Command::invite(std::string user, std::string channel, User user_object)
+{
+	std::vector<Channel>::iterator it_c;
+	std::vector<User>::iterator it_s;
+
+	it_c = channel_exist(channel);
+	if (it_c != Server::_channels.end())
+	{
+		it_s = user_exist(user);
+		if (it_s != Server::users.end())
+		{
+			if (it_c->isOperator(user_object) != 1) // -1 should be 0?
+				ErrorMsg(user_object._fd, "You Are Not An Operator", "482"); // when u r not the operator u cant kick someone
+			else
+			{
+				if (it_c->isUser(*it_s))
+					ErrorMsg(user_object._fd, (" User Is Already In Channel"), "443"); // cant invite someone who is in chan
+				else
+				{
+					if (it_c->isMode('i') == 1)
+					{
+						if (it_c->isInvited(*it_s))
+							send(user_object._fd, "User is already invited\n", strlen("You are already invited\n"), 0);
+						else
+						{
+							message = "You're invited to the Channel " + channel + " \n";
+							send(it_s->_fd, message.c_str(), strlen(message.c_str()), 0);
+							it_c->invites.push_back(*it_s);
+
+							std::string confirmation = "Invite was successfully sent to " + user + " for the channel " + channel + "\n";
+                            send(user_object._fd, confirmation.c_str(), strlen(confirmation.c_str()), 0);
+						}
+					}
+					else
+						send(user_object._fd, "Channel is not on +i mode\n", strlen("Channel is not on +i mode\n"), 0);
+				}
+			}
+		}
+		else
+			ErrorMsg(user_object._fd, ("Invalid Nickname"), "401");
+	}
+	else
+		ErrorMsg(user_object._fd, (" Invalid Channel"), "403");
+
 }
