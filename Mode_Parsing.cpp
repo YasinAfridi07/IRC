@@ -37,7 +37,7 @@ void Channel::setMode(char m, char sign)
 		{
 			if (sign == '+')
 				it->second = 1; // the key "it->second" represents if the mode is in the "+" status
-			else
+			else // If mode is in '-' status (eg; MODE #channel -i)
 				it->second = 0;
 		}
 		it++;
@@ -91,7 +91,7 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg)
 						this->operators.erase(it_s);
 					}
 					else
-						send(it_s->_fd, "Cannot remove youself from operatores\n", strlen("Cannot remove youself from operatores\n"), 0);
+						send(it_s->_fd, "Cannot remove youself from operators\n", strlen("Cannot remove youself from operators\n"), 0);
 				}
 				else
 					send(user_object._fd, "User is not an Operator\n", strlen("User is not an Operator\n"), 0);

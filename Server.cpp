@@ -7,23 +7,24 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-std::string Server::_password = "";
-std::string Server::bufferStr = "";
-std::string Server::_hostName = "";
-char Server::c_buffer[BUFFER_SIZE]= {0};
-char Server::c_hostName[MAX_HOST_NAME] = {0};
-int Server::serverSocket = -1;
-int Server::max_sd = -1;
-int Server::sd = -1;
-int Server::valread = -1;
-int Server::_port = -1;
-int Server::newSocket = -1;
-int Server::curIndex = -1;
-int Server::addrlen = sizeof(struct sockaddr_in);
-std::vector<int> Server::_fds;
-std::vector<User> Server::users;
-struct sockaddr_in Server::address;
-fd_set Server::readfds;
+// Initialize static member variables of the Server class
+std::string Server::_password = ""; // Server password
+std::string Server::bufferStr = ""; // Buffer string for message handling
+std::string Server::_hostName = ""; // Hostname of the server
+char Server::c_buffer[BUFFER_SIZE]= {0}; // Character buffer for reading messages
+char Server::c_hostName[MAX_HOST_NAME] = {0}; // Character buffer for storing hostname
+int Server::serverSocket = -1; // Server socket descriptor
+int Server::max_sd = -1; // Maximum socket descriptor for select()
+int Server::sd = -1; // Current socket descriptor
+int Server::valread = -1; // Value read from socket
+int Server::_port = -1; // Server port number
+int Server::newSocket = -1; // New socket descriptor for accepted connections
+int Server::curIndex = -1; // Current index for handling clients
+int Server::addrlen = sizeof(struct sockaddr_in); // Length of the address structure
+std::vector<int> Server::_fds; // Vector of socket descriptors for connected clients
+std::vector<User> Server::users; // Vector of User objects representing connected clients
+struct sockaddr_in Server::address; // Server address structure
+fd_set Server::readfds; // Set of socket descriptors for select()
 std::vector<Channel> Server::_channels;
 
 void Check(int ac)
