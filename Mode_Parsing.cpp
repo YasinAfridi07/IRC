@@ -27,22 +27,22 @@ int Channel::isOperator(User user)
 // } // this function is used to get the user fd
 
 
-// void Channel::setMode(char m, char sign)
-// {
-// 	std::map<char, int>::iterator it;
-// 	it = this->_mode.begin();
-// 	while ( it != this->_mode.end())
-// 	{
-// 		if (it->first == m) // the key "it->first" represents the mode charactor
-// 		{
-// 			if (sign == '+')
-// 				it->second = 1; // the key "it->second" represents if the mode is in the "+" status
-// 			else
-// 				it->second = 0;
-// 		}
-// 		it++;
-// 	}
-// }
+void Channel::setMode(char m, char sign)
+{
+	std::map<char, int>::iterator it;
+	it = this->_mode.begin();
+	while ( it != this->_mode.end())
+	{
+		if (it->first == m) // the key "it->first" represents the mode charactor
+		{
+			if (sign == '+')
+				it->second = 1; // the key "it->second" represents if the mode is in the "+" status
+			else
+				it->second = 0;
+		}
+		it++;
+	}
+}
 
 // void Channel::exec_mode(std::string mode, User &user_object, std::string arg)
 // {

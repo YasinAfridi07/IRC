@@ -61,6 +61,8 @@ class Channel
 		int isOperator(User user);
 		int isUser(User user); //  tim
 
+		
+
 
 
 };

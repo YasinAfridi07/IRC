@@ -106,7 +106,7 @@ int Channel::user_length(void)
 }
 
 void Channel::addUserToChannel(User user_object)
-{
+{	
 	if(operators.size() == 0)
 	{
 		operators.push_back(User(user_object));
@@ -134,13 +134,23 @@ void Channel::addUserToChannel(User user_object)
 	}
 }
 
+int Channel::isUser(User user)
+{
+	std::vector<User>::const_iterator it;
+	for (it = this->users.begin(); it != this->users.end(); it++)
+	{
+		if (it->_nickname == user._nickname)
+			return (1);
+	}
+	return (0);
+}
 
-void Command::join(std::string channel_s, std::string key_s, User user)
+void Command::ajoin(std::string channel_s, std::string key_s, User user)
 {
     std::vector<Channel>::iterator it;
     std::vector<User>::iterator it_i;
 
-    // check if the channel name is valid
+    // Check if the channel name is valid
     if (channel_s.at(0) != '#' && channel_s.at(0) != '&')
     {
         send(user._fd, "Invalid Channel Name", strlen("Invalid Channel Name"), 0);
@@ -159,7 +169,7 @@ void Command::join(std::string channel_s, std::string key_s, User user)
         // If the user is already in the channel
         if (it->isUser(user))
         {
-            ErrorMsg(user._fd, (user._nickname + " " + it->getName() + "User Already in Channel"), "443");
+            ErrorMsg(user._fd, (user._nickname + " " + it->getName() + " User Already in Channel"), "443");
             return;
         }
 
@@ -180,16 +190,27 @@ void Command::join(std::string channel_s, std::string key_s, User user)
                             it->addUserToChannel(user);
                         }
                         else
-                            ErrorMsg(user._fd, (it->getName() + "Invite Only Mode is on"), "473");
+                        {
+                            ErrorMsg(user._fd, (it->getName() + " Invite Only Mode is on"), "473");
+                            return;
+                        }
                     }
                     else
+                    {
                         it->addUserToChannel(user);
+                    }
                 }
                 else
-                    ErrorMsg(user._fd, (it->getName() + "Keypass Mode is on"), "475");
+                {
+                    ErrorMsg(user._fd, (it->getName() + " Keypass Mode is on"), "475");
+                    return;
+                }
             }
             else
+            {
                 ErrorMsg(user._fd, "Key Not required to join channel\n", "475");
+                return;
+            }
         }
         else
         {
@@ -204,11 +225,18 @@ void Command::join(std::string channel_s, std::string key_s, User user)
                     it->addUserToChannel(user);
                 }
                 else
-                    ErrorMsg(user._fd, (it->getName() + "Invite Only Mode is on"), "473");
+                {
+                    ErrorMsg(user._fd, (it->getName() + " Invite Only Mode is on"), "473");
+                    return;
+                }
             }
             else
+            {
                 it->addUserToChannel(user);
+            }
+			who(channel_s, user);
         }
+
     }
     else
     {
@@ -219,17 +247,36 @@ void Command::join(std::string channel_s, std::string key_s, User user)
     }
 }
 
+int Channel::isInvited(User user)
+{
+	std::vector<User>::iterator it;
+	for (it = this->invites.begin(); it != this->invites.end(); it++)
+	{
+		if (it->_nickname == user._nickname)
+			return (1);
+	}
+	return (0);
+}
+std::vector<User>::iterator Channel::inv_in_chan(int fd)
+{
+	for (this->it_invites = this->invites.begin(); this->it_invites != this->invites.end(); it_invites++)
+	{
+		if (this->it_invites->_fd == fd)
+			return (it_invites);
+	}
+	return (it_invites);
+}
 
 std::vector<Channel>::iterator Command::channel_exist(std::string channel)
 {
-	this->chan_it = Server::_channels.begin();
-	while (this->chan_it != Server::_channels.end())
+	this->channel_it = Server::_channels.begin();
+	while (this->channel_it != Server::_channels.end())
 	{
-		if (chan_it->getName() == channel)
-			return chan_it;
-		chan_it++;
+		if (channel_it->getName() == channel)
+			return channel_it;
+		channel_it++;
 	}
-	return chan_it;
+	return channel_it;
 }
 
 std::vector<User>::iterator Command::user_exist(std::string nick)
@@ -280,7 +327,7 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
                 }
             }
             else
-                ErrorMsg(user._fd, (it_channel->getName() + "User Are Not Part of Channel"), "404");
+                ErrorMsg(user._fd, (it_channel->getName() + " User Are Not Part of Channel"), "404");
         }
     }
     else
