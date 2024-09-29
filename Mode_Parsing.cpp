@@ -1,18 +1,18 @@
-// #include "Server.hpp"
+ #include "Server.hpp"
 
 
-// int Channel::isOperator(User user)
-// {
-// 	std::vector<User>::const_iterator it;
-// 	it = this->operators.begin();
-// 	while (it != this->operators.end())
-// 	{
-// 		if (it->_nickname == user._nickname)
-// 			return (1);
-// 		it++;
-// 	}
-// 	return (0);
-// } // this function is used for checking if the user is an operator
+int Channel::isOperator(User user)
+{
+	std::vector<User>::const_iterator it;
+	it = this->operators.begin();
+	while (it != this->operators.end())
+	{
+		if (it->_nickname == user._nickname)
+			return (1);
+		it++;
+	}
+	return (0);
+} // this function is used for checking if the user is an operator
 
 // std::vector<User>::iterator Channel::channel_operator(int fd)
 // {
