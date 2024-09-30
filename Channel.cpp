@@ -73,23 +73,17 @@ void Channel::setPass(std::string str)
 	_pass = str;
 }
 
-
 int Channel::isMode(char m)
 {
-	std::map<char,int>::iterator it;
-	it = this->_mode.begin();
-	while (it != this->_mode.end())
-	{
-		if(it->first == m)
-		{
-			if(it->second == 1)
-				return(1);
-			else if(it->second == 0)
-				return(0);
-		}
-		it++;
-	}
-	return (2);
+    std::map<char, int>::iterator it = this->_mode.find(m);
+    if (it != this->_mode.end())
+    {
+        if (it->second == 1) // If mode is in '+' it is set to 1 status
+            return 1;
+        else if (it->second == 0) // If mode is in '-' it is set to 0 status (eg; MODE #channel -i)
+            return 0;
+    }
+    return 2;
 }
 
 int Channel::user_length(void)

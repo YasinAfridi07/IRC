@@ -45,8 +45,8 @@ public:
     std::string getUser() const { return _username; }
     std::string getNick() const { return _nickname; }
     std::string getPass() const { return _password; }
-    
-    void execute(std::string cmd, User *it);
+
+    void process_cmd(std::string cmd, User *it);
 };
 
 #endif
