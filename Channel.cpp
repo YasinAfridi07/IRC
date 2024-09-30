@@ -115,7 +115,17 @@ void Channel::addUserToChannel(User user_object)
 	}
 	users.push_back(User(user_object));
 	std::string channel_welcome_msg;
-	channel_welcome_msg = "\n - Welcome to Channel \n";
+	channel_welcome_msg = GREEN "Welcome to " + this->getName() + " channel, " + user_object._nickname + "!" RESET "\n";
+	channel_welcome_msg += BLUE "Here are some commands you can use:" RESET "\n";
+	channel_welcome_msg += CYAN " - JOIN <channel> [key]: Join a channel" RESET "\n";
+	channel_welcome_msg += CYAN " - PART <channel>: Leave a channel" RESET "\n";
+	channel_welcome_msg += CYAN " - MSG <user/channel> <message>: Send a private message" RESET "\n";
+	channel_welcome_msg += CYAN " - NICK <new_nickname>: Change your nickname" RESET "\n";
+	channel_welcome_msg += CYAN " - WHO <channel>: List users in a channel" RESET "\n";
+	channel_welcome_msg += CYAN " - INVITE <user> <channel>: Invite a user to a channel" RESET "\n";
+	channel_welcome_msg += CYAN " - KICK <user> <channel>: Kick a user from a channel" RESET "\n";
+	channel_welcome_msg += CYAN " - TOPIC <channel> <topic>: Set the channel topic" RESET "\n";
+	channel_welcome_msg += CYAN " - MODE <channel> <mode(eg: +/-i, +/-o, +/-t, +/-k, +/-l)> [parameters]: Set channel modes" RESET "\n";
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
 

@@ -41,7 +41,7 @@ void	Check(int ac)
 {
 	if (ac != 3)
 	{
-		std::cerr << "Usage: ./ircserv [port] [PASS]" << std::endl;
+		std::cerr << RED << "Usage: ./ircserv [port] [PASS]" << RESET << std::endl;
 		exit(0);
 	}
 }
@@ -50,7 +50,7 @@ void	valid_arg(std::string a, std::string b, int c)
 	if (a.empty() || b.empty() || c > MAX_PORT || a.length() > 5
 		|| a.find_first_not_of("0123456789") != std::string::npos)
 	{
-		std::cerr << "Error: invalid arguments !" << std::endl;
+		std::cerr << RED << "Error: invalid arguments !" << RESET << std::endl;
 		exit(0);
 	}
 }
@@ -61,13 +61,13 @@ void Server::openSocket()
 
 	if ((Server::serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 	{
-		throw ServerException("Failed to create socket");
+		throw ServerException(RED "Failed to create socket" RESET);
 	}
 	opt = 1;
 	if (setsockopt(Server::serverSocket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
 			sizeof(opt)) < 0)
 	{
-		throw ServerException("setsockopt failed");
+		throw ServerException(RED "setsockopt failed" RESET);
 	}
 	Server::address.sin_family = AF_INET;
 	Server::address.sin_addr.s_addr = INADDR_ANY;
@@ -75,21 +75,21 @@ void Server::openSocket()
 	if (bind(Server::serverSocket, (struct sockaddr *)&Server::address,
 			sizeof(Server::address)) < 0)
 	{
-		throw ServerException("Bind failed");
+		throw ServerException(RED "Bind failed" RESET);
 	}
 	if (listen(Server::serverSocket, MAX_CLIENTS) < 0)
 	{
-		throw ServerException("Listen failed");
+		throw ServerException(RED "Listen failed" RESET);
 	}
 	addrlen = sizeof(Server::address);
 	gethostname(c_hostName, MAX_HOST_NAME);
 	Server::_hostName = c_hostName;
-	std::cout << "IRC Server started on port " << Server::_port << " : " << _hostName << std::endl;
-	std::cout << "Waiting for incoming connections..." << RESET << std::endl;
+	std::cout << UNDERLINE << GREEN << BOLD << "IRC Server started on port " << _port << " : " << _hostName << RESET << std::endl;
+	std::cout << BLUE << BOLD << "Waiting for incoming connections..." << RESET << std::endl;
 }
 
-//This function call will block until a client connects, at which point it
-//returns a new socket descriptor for the connection,
+// This function call will block until a client connects, at which point it
+// returns a new socket descriptor for the connection,
 // allowing you to communicate with that client.
 void Server::acceptConnection()
 {
@@ -101,7 +101,7 @@ void Server::acceptConnection()
 			(socklen_t *)&addrlen);
 	if (newSocket < 0)
 	{
-		std::cerr << "Failed to accept connection" << std::endl;
+		std::cerr << RED << "Failed to accept connection" << RESET << std::endl;
 		return ;
 	}
 	// Create a new User object and initialize its FD
@@ -118,7 +118,7 @@ void Server::acceptConnection()
 void Server::handleClientDisconnection(size_t i)
 {
 	getpeername(sd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
-	std::cout << "Client disconnected" << std::endl;
+	std::cout << YELLOW << "Client disconnected" << RESET << std::endl;
 	close(sd);
 	_fds.erase(_fds.begin() + i);   // Удаляем сокет из вектора
 	users.erase(users.begin() + i); // Удаляем пользователя из списка
@@ -131,8 +131,8 @@ void Server::handleUserCommand(size_t i, const std::string &message)
 
 	if (!users[i].getUser().empty())
 	{
-		std::cerr << "Error: USER already set and cannot be changed" << std::endl;
-		errorMsg = "Error: USER already set and cannot be changed.\n";
+		std::cerr << RED << "Error: USER already set and cannot be changed" << RESET << std::endl;
+		errorMsg = RED "Error: USER already set and cannot be changed.\n" RESET;
 		send(sd, errorMsg, strlen(errorMsg), 0);
 	}
 	else
@@ -140,7 +140,7 @@ void Server::handleUserCommand(size_t i, const std::string &message)
 		std::string user = message.substr(5);
 		// Извлекаем имя пользователя после "USER "
 		users[i].setUser(user);
-		std::cout << "Set USER: " << user;
+		std::cout << GREEN << "Set USER: " << user << std::endl << RESET;
 	}
 }
 
@@ -151,15 +151,15 @@ void Server::handleNickCommand(size_t i, const std::string &message)
 
 	if (!users[i].getNick().empty())
 	{
-		std::cerr << "Error: NICK already set and cannot be changed" << std::endl;
-		errorMsg = "Error: NICK already set and cannot be changed.\n";
+		std::cerr << RED << "Error: NICK already set and cannot be changed" << RESET << std::endl;
+		errorMsg = RED "Error: NICK already set and cannot be changed.\n" RESET;
 		send(sd, errorMsg, strlen(errorMsg), 0);
 	}
 	else
 	{
 		std::string nick = message.substr(5); // Извлекаем никнейм после "NICK "
 		users[i].setNick(nick);
-		std::cout << "Set NICK: " << nick;
+		std::cout << GREEN << "Set NICK: " << nick << std::endl << RESET;
 	}
 }
 
@@ -170,8 +170,8 @@ void Server::handlePassCommand(size_t i, const std::string &message)
 
 	if (!users[i].getPass().empty())
 	{
-		std::cerr << "Error: PASS already set and cannot be changed" << std::endl;
-		errorMsg = "Error: PASS already set and cannot be changed.\n";
+		std::cerr << RED << "Error: PASS already set and cannot be changed" << RESET << std::endl;
+		errorMsg = RED "Error: PASS already set and cannot be changed.\n" RESET;
 		send(sd, errorMsg, strlen(errorMsg), 0);
 	}
 	else
@@ -184,14 +184,14 @@ void Server::handlePassCommand(size_t i, const std::string &message)
 		// Удаляем пробелы в конце
 		if (pass != _password)
 		{
-			std::cerr << "Error: invalid password" << std::endl;
-			errorMsg = "Error: invalid password.\n";
+			std::cerr << RED << "Error: invalid password" << RESET << std::endl;
+			errorMsg = RED "Error: invalid password.\n" RESET;
 			send(sd, errorMsg, strlen(errorMsg), 0);
 		}
 		else
 		{
 			users[i].setPass(pass);
-			std::cout << "Set PASS: " << pass << std::endl;
+			std::cout << GREEN << "Set PASS: " << pass << std::endl << RESET;
 		}
 	}
 }
@@ -204,9 +204,9 @@ bool Server::isUserAuthorized(size_t i)
 	if (users[i].getNick().empty() || users[i].getUser().empty()
 		|| users[i].getPass().empty())
 	{
-		std::cerr << "Error: user not authorized, missing USER, NICK, or PASS " << std::endl;
-			errorMsg = "Error: user not authorized. Please provide USER, NICK, and PASS.\n ";
-				send(sd, errorMsg, strlen(errorMsg), 0);
+		std::cerr << RED << "Error: user not authorized, missing USER, NICK, or PASS " << RESET << std::endl;
+		errorMsg = RED "Error: user not authorized. Please provide USER, NICK, and PASS.\n" RESET;
+		send(sd, errorMsg, strlen(errorMsg), 0);
 		return (false);
 	}
 	return (true);
@@ -277,7 +277,7 @@ void Server::run()
 		// poll() equivalent, used for handling I/O operations
 		if ((activity < 0) && (errno != EINTR))
 		{
-			std::cerr << "Select error" << std::endl;
+			std::cerr << RED << "Select error" << RESET << std::endl;
 		}
 		if (FD_ISSET(serverSocket, &readfds))
 		{

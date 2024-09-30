@@ -45,35 +45,29 @@ void Command::mode(std::string channel_s, std::string mode, User user, std::stri
 {
     std::vector<Channel>::iterator it_c;
 
-		std::cout << "HImode1" << std::endl;
     // Verify if mode string is valid and if mode is known
     if (mode.size() != 2 && (mode[0] != '+' && mode[0] != '-'))
 		{
         ErrorMsg(user._fd, (mode + " :is unknown mode char to me.\n"), "472");
         return;
     }
-		std::cout << "HImode2" << std::endl;
     // Check if channel exists
     it_c = channel_exist(channel_s);
-		std::cout << "HImode3" << std::endl;
     if (it_c == Server::_channels.end())
 		{
         ErrorMsg(user._fd, (channel_s + " :No such channel.\n"), "403");
         return;
     }
-		std::cout << "HImode4" << std::endl;
     // Check if user is an operator
     if (!it_c->isOperator(user)) {
         ErrorMsg(user._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
         return;
     }
-		std::cout << "HImode5" << std::endl;
 		if (it_c->isMode(mode[1]) == 2)
     {
         ErrorMsg(user._fd, (mode + " :is unknown mode char to me.\n"), "472");
         return;
     }
-		std::cout << "HImode6" << std::endl;
     // Execute mode change
     it_c->exec_mode(mode, user, arg);
 }
@@ -100,7 +94,7 @@ void User::process_cmd(std::string mes, User *user)
 		else
 			return ;
 	}
-	else if (cmdType == "/CHANUSER")
+	else if (cmdType == "WHO")
 	{
 		if (splitmsg.size() == 2)
 			cmd.who(splitmsg.at(1), *user);
@@ -136,14 +130,12 @@ void User::process_cmd(std::string mes, User *user)
 	{
 		if (splitmsg.size() == 4)
 		{
-			std::cout << "HI1" << std::endl;
 			cmd.mode(splitmsg.at(1), splitmsg.at(2), *user, splitmsg.at(3));
 			// channel, mode, user, arg
 		}
 		// MODE #channel +o nickname
 		else if (splitmsg.size() == 3)
 		{
-			std::cout << "HI2" << std::endl;
 			cmd.mode(splitmsg.at(1), splitmsg.at(2), *user, ""); //
 		}
 		else
