@@ -83,7 +83,7 @@ void Server::acceptConnection() {
         std::cerr << "Failed to accept connection" << std::endl;
         return;
     }
-
+    
     // Create a new User object and initialize its FD
     User newUser;
     newUser._fd = newSocket; // Assign the file descriptor
@@ -108,6 +108,7 @@ void Server::handleClientDisconnection(size_t i) {
 // Обработка команды USER
 void Server::handleUserCommand(size_t i, const std::string& message)
 {
+    std::cout << "Handling USER command: " << message << std::endl;
     if (!users[i].getUser().empty()) {
         std::cerr << "Error: USER already set and cannot be changed" << std::endl;
         const char *errorMsg = "Error: USER already set and cannot be changed.\n";
@@ -117,13 +118,13 @@ void Server::handleUserCommand(size_t i, const std::string& message)
 	{
         std::string user = message.substr(5); // Извлекаем имя пользователя после "USER "
         users[i].setUser(user);
-        std::cout << "Set USER: " << user;
     }
 }
-
+ 
 // Обработка команды NICK
 void Server::handleNickCommand(size_t i, const std::string& message)
 {
+    std::cout << "Handling NICK command: " << message << std::endl;
     if (!users[i].getNick().empty())
 	{
         std::cerr << "Error: NICK already set and cannot be changed" << std::endl;
@@ -134,36 +135,48 @@ void Server::handleNickCommand(size_t i, const std::string& message)
 	{
         std::string nick = message.substr(5); // Извлекаем никнейм после "NICK "
         users[i].setNick(nick);
-        std::cout << "Set NICK: " << nick;
     }
 }
 
 // Обработка команды PASS
 void Server::handlePassCommand(size_t i, const std::string& message) {
-    if (!users[i].getPass().empty()) {
-        std::cerr << "Error: PASS already set and cannot be changed" << std::endl;
-        const char *errorMsg = "Error: PASS already set and cannot be changed.\n";
-        send(sd, errorMsg, strlen(errorMsg), 0);
-    } else {
-        std::string pass = message.substr(5); // Извлекаем пароль после "PASS "
-        pass.erase(0, pass.find_first_not_of(" \n\r\t"));  // Удаляем пробелы в начале
-        pass.erase(pass.find_last_not_of(" \n\r\t") + 1);  // Удаляем пробелы в конце
-        if(pass != _password) {
-            std::cerr << "Error: invalid password" << std::endl;
-            const char *errorMsg = "Error: invalid password.\n";
-            send(sd, errorMsg, strlen(errorMsg), 0);
-        } else {
+    std::cout << "Handling PASS command: " << message << std::endl;
+    std::string pass = message.substr(5);
+    pass.erase(0, pass.find_first_not_of(" \n\r\t"));  // Удаляем пробелы в начале
+    pass.erase(pass.find_last_not_of(" \n\r\t") + 1);  // Удаляем пробелы в конце
+    users[i].setPass(pass);
+    // Проверка установленного пароля
+    if (users[i].getPass().empty()) {
+        if (strcmp(pass.c_str(), _password.c_str()) == 0) {
             users[i].setPass(pass);
             std::cout << "Set PASS: " << pass << std::endl;
+        } else {
+            std::cerr << "Error: invalid password" << std::endl;
+            const char *errorMsg = "Error: invalid password.\n";
+            send(users[i]._fd, errorMsg, strlen(errorMsg), 0);
         }
-    }
+    } 
 }
+
 
 // Проверка, авторизован ли пользователь
 bool Server::isUserAuthorized(size_t i) {
-    if (users[i].getNick().empty() || users[i].getUser().empty() || users[i].getPass().empty()) {
-        std::cerr << "Error: user not authorized, missing USER, NICK, or PASS" << std::endl;
-        const char *errorMsg = "Error: user not authorized. Please provide USER, NICK, and PASS.\n";
+    if (users[i]._nickname.empty()) {
+        std::cerr << "Error: user not authorized, missing NICK" << std::endl;
+        std::cout << users[i]._nickname << std::endl;
+        const char *errorMsg = "Error: user not authorized. Please provide NICK\n";
+        send(sd, errorMsg, strlen(errorMsg), 0);
+        return false;
+    }
+    if (users[i]._password.empty()) {
+        std::cerr << "Error: user not authorized, missing PASS" << std::endl;
+        const char *errorMsg = "Error: user not authorized. Please provide PASS.\n";
+        send(sd, errorMsg, strlen(errorMsg), 0);
+        return false;
+    }
+    if (users[i]._username.empty()) {
+        std::cerr << "Error: user not authorized, missing USER" << std::endl;
+        const char *errorMsg = "Error: user not authorized. Please provide USER.\n";
         send(sd, errorMsg, strlen(errorMsg), 0);
         return false;
     }
@@ -179,24 +192,18 @@ void Command::who(std::string channel_s, User user)
         ErrorMsg(user._fd, "Channel does not exist.", "403");
         return;
     }
-
     // Prepare the user list
     std::string userList = "Users in " + it->getName() + ": ";
-
-
     // Get the users in the channel
     std::vector<User> usersInChannel = it->getUsers();
-
     // Use a traditional for loop to append all user nicknames
     for (std::vector<User>::iterator it_user = usersInChannel.begin(); it_user != usersInChannel.end(); ++it_user) {
         userList += it_user->_nickname + ", "; // Append each user's nickname
     }
-
     // Trim the trailing space
     if (!userList.empty()) {
         userList.pop_back(); // Remove the last space
     }
-
     // Send the user list to the user who requested it
     send(user._fd, userList.c_str(), userList.length(), 0);
 }
@@ -225,11 +232,14 @@ void User::execute(std::string mes, User *user)
 		    return ;
         }
     }
-    else if(cmdType == "/CHANUSER")
-    {
-        cmd.who(splitmsg.at(1), *user);
+    else if(cmdType == "CHANUSER")
+    {   
+        if (splitmsg.size() == 2)
+            cmd.who(splitmsg.at(1), *user);
+        else
+            return ;
     }
-    else if(cmdType == "PRIVMSG")
+    else if(cmdType == "PRIVMSG" || cmdType == "MSG")
     {
             if (splitmsg.size() >= 3) 
             {
@@ -252,10 +262,22 @@ void User::execute(std::string mes, User *user)
 		        return;
 	        }
     }
+    else if (cmdType == "PING") 
+    {
+		std::string pong = "PONG\r\n";
+		send(user->_fd, pong.c_str(), pong.length(), 0);
+    }
     
 
 }
-         
+
+void printSplitMsg(const std::vector<std::string>& splitmsg) {
+    std::cout << "Split Message:" << std::endl;
+    for (size_t i = 0; i < splitmsg.size(); ++i) {
+        std::cout << splitmsg[i] << "," << std::endl;
+    }
+}
+
 void Server::handleClientMessages() {
     for (size_t i = 0; i < _fds.size(); i++) {
         sd = _fds[i];
@@ -265,22 +287,47 @@ void Server::handleClientMessages() {
             } else {
                 c_buffer[valread - 1] = '\0'; // Correctly null-terminate the string
                 std::string message(c_buffer);
-
-                // Process commands based on the received message
-                if (message.substr(0, 4) == "USER") {
-                    handleUserCommand(i, message);
-                } else if (message.substr(0, 4) == "NICK") {
-                    handleNickCommand(i, message);
-                } else if (message.substr(0, 4) == "PASS") {
-                    handlePassCommand(i, message);
-                } else if (isUserAuthorized(i)) {
-                    std::cout << users[i]._fd << std::endl;
+                std::vector<std::string> splitmsg = split(c_buffer);
+                // printSplitMsg(splitmsg);
+                for (size_t j = 0; j < splitmsg.size(); j++) {
+                    if (splitmsg[j] == "NICK" &&  splitmsg.size() > 1) {
+                        std::string nick = splitmsg[j + 1];
+                        users[i]._nickname = nick; // Сохраняем ник
+                        users[i].nick_flag = 1;
+                    }  
+                    if (splitmsg[j] == "USER" && splitmsg.size() > 1) {
+                        std::string user = splitmsg[j + 1];
+                        users[i].setUser(user); // Сохраняем пользователя
+                        users[i].user_flag = 1;
+                    } 
+                    if (splitmsg[j] == "PASS" && splitmsg.size() > 1) {
+                        std::string pass = splitmsg[j + 1];
+                        users[i]._password = pass; // Сохраняем пароль
+                        users[i].pass_flag = 1;
+                    }
+                }
+                std::cout << sd << " его sd" << std::endl;
+                std::cout << "NICKNAME = " <<users[i]._nickname << " and flag = " << users[i].nick_flag << std::endl;
+                std::cout << "PASSWORD = " <<users[i]._password << " and flag = " << users[i].pass_flag << std::endl;
+                std::cout << "USERNAME = " <<users[i]._username << " and flag = " << users[i].user_flag << std::endl;
+                if (users[i].pass_flag == 1 && users[i].nick_flag == 1 && users[i].user_flag == 1) {
+                    if (users[i].cap == 0) {
+			std::string wlcmMsg = ":irc 001 " + users[i]._nickname + " :Welcome to FT_IRC, " + users[i]._username + "@" + Server::_hostName + "\n"
+								  ":irc 002 " + users[i]._nickname + " :Host is " + Server::_hostName + ", running version 1.0\n"
+								  ":irc 003 " + users[i]._nickname + " :Created in 42 labs at July\n";
+                        send(users[i]._fd, wlcmMsg.c_str(), strlen(wlcmMsg.c_str()), 0);
+                        std::string firstServerMsg = "CAP * ACK multi-prefix\r\n";
+                        send(sd, firstServerMsg.c_str(), firstServerMsg.length(), 0);
+                        std::cout << "new client connected FD:" << sd << RESET << std::endl;
+                        users[i].cap = 1;
+                    }
                     users[i].execute(message, &users[i]); // Pass the current user
                 }
             }
         }
     }
 }
+
 
 
 void Server::run() {
@@ -302,6 +349,7 @@ void Server::run() {
             std::cerr << "Select error" << std::endl;
         }
         if (FD_ISSET(serverSocket, &readfds)) {
+            
             acceptConnection();
         }
         handleClientMessages();
