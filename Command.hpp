@@ -23,7 +23,8 @@ class Command{
 		void ajoin(std::string channel_s, std::string key_s, User user);
 		void who(std::string channel_s, User user);
 		void privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user); // Yasin
-
+		void invite(std::string user, std::string channel, User user_object);
+		void kick(std::string channel, std::string user_kick, const std::vector<std::string>& splitmsg, User user);
 		std::vector<std::string> ft_split(std::string str, char delimiter);
 		std::vector<Channel>::iterator channel_exist(std::string channel);
 		std::vector<User>::iterator user_exist(std::string nick);

@@ -267,8 +267,28 @@ void User::execute(std::string mes, User *user)
 		std::string pong = "PONG\r\n";
 		send(user->_fd, pong.c_str(), pong.length(), 0);
     }
-    
-
+    else if(cmdType == "INVITE")
+    {
+        if (splitmsg.size() == 3) 
+        {
+		    cmd.invite(splitmsg.at(1), splitmsg.at(2), *user);
+	    } 
+        else 
+        {
+		    ErrorMsg(user->_fd, "INVITE command requires 3 arguments\n", "461");
+	    }
+    }
+    else if(cmdType == "KICK")
+    {
+        if (splitmsg.size() >= 3) 
+        {
+            cmd.kick(splitmsg.at(1), splitmsg.at(2), splitmsg, *user);
+        } 
+        else 
+        {
+            ErrorMsg(user->_fd, "KICK command requires 3 or 4 arguments\n", "461");
+        }
+    }
 }
 
 void printSplitMsg(const std::vector<std::string>& splitmsg) {
@@ -306,6 +326,7 @@ void Server::handleClientMessages() {
                         users[i].pass_flag = 1;
                     }
                 }
+                // addd auth for user check is nick alredy exist
                 std::cout << sd << " его sd" << std::endl;
                 std::cout << "NICKNAME = " <<users[i]._nickname << " and flag = " << users[i].nick_flag << std::endl;
                 std::cout << "PASSWORD = " <<users[i]._password << " and flag = " << users[i].pass_flag << std::endl;

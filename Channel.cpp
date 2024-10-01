@@ -121,7 +121,7 @@ void Channel::addUserToChannel(User user_object)
 	}
 	users.push_back(User(user_object));
 	std::string channel_welcome_msg;
-	channel_welcome_msg = "\n - Welcome to Channel \n";
+	channel_welcome_msg = "\n - Welcome to Channel \r\n";
 	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
 }
 
@@ -343,4 +343,127 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
     // If receiver is not found as user or channel, send error message
     if (it_user == Server::users.end() && it_channel == Server::_channels.end())
         ErrorMsg(user._fd, (receiver + " :Invalid Nickname or Channel.\n"), "401");
+}
+
+
+void Command::invite(std::string user, std::string channel, User user_object)
+{
+	std::vector<Channel>::iterator it_c;
+	std::vector<User>::iterator it_s;
+
+	it_c = channel_exist(channel);
+	if (it_c != Server::_channels.end())
+	{
+		it_s = user_exist(user);
+		if (it_s != Server::users.end())
+		{
+			if (it_c->isOperator(user_object) != 1)
+				ErrorMsg(user_object._fd, "You Are Not An Operator", "482");
+			else
+			{
+				if (it_c->isUser(*it_s))
+					ErrorMsg(user_object._fd, (" User Is Already In Channel"), "443");
+				else
+				{
+					if (it_c->isMode('i') == 1)
+					{
+						if (it_c->isInvited(*it_s))
+							send(user_object._fd, "User is already invited\n", strlen("You are already invited\n"), 0);
+						else
+						{
+							message = "You're invited to the Channel " + channel + " \n";
+							send(it_s->_fd, message.c_str(), strlen(message.c_str()), 0);
+							it_c->invites.push_back(*it_s); // Im pushing a object to the vector it_c or is it just a user?
+
+							std::string confirmation = "Invite was successfully sent to " + user + " for the channel " + channel + "\n";
+                            send(user_object._fd, confirmation.c_str(), strlen(confirmation.c_str()), 0);
+						}
+					}
+					else
+						send(user_object._fd, "Channel is not on +i mode\n", strlen("Channel is not on +i mode\n"), 0);
+				}
+			}
+		}
+		else
+			ErrorMsg(user_object._fd, ("Invalid Nickname"), "401");
+	}
+	else
+		ErrorMsg(user_object._fd, (" Invalid Channel"), "403");
+
+}
+
+void Command::kick(std::string channel, std::string user_kick, const std::vector<std::string>& splitmsg, User user)
+{
+    // Find the channel to kick the user from
+    std::vector<Channel>::iterator it_c = channel_exist(channel);
+
+    if (it_c != Server::_channels.end()) // Check if the channel exists
+    {
+        // Find the user to be kicked within the channel
+        std::vector<User>::iterator it_s;
+        std::vector<User>::iterator it_o;
+        unsigned long i = 3;
+
+        // Iterate through users in the channel to find the one to be kicked
+        for(it_s = it_c->users.begin(); it_s != it_c->users.end(); ++it_s)
+        {
+            if (it_s->_nickname == user_kick)
+            {
+                // Check if the command user is an operator
+                if (it_c->isOperator(user) != 1)
+                {
+                    ErrorMsg(user._fd, "Not an Operator", "482"); // Not an operator error
+                    return;
+                }
+                else
+                {
+                    if(user._nickname == user_kick)
+                    {
+                        ErrorMsg(user._fd, "You cannot kick yourself\n", "404"); // Self-kick error
+                        return;
+                    }
+
+                    // Inform the user they're being kicked
+                    send(it_s->_fd, "You have been kicked from the channel\n", strlen("You have been kicked from the channel\n"), 0);
+
+                    // If a reason is provided, send it to the kicked user
+                    if (splitmsg.size() > 3)
+                        send(it_s->_fd, "Reason for kicking: ", strlen("Reason for kicking: "), 0);
+
+                    while (i < splitmsg.size())
+                    {
+                        send(it_s->_fd, (splitmsg.at(i)).c_str(), strlen((splitmsg.at(i)).c_str()), 0);
+                        send(it_s->_fd, " ", strlen(" "), 0);
+                        i++;
+                    }
+
+                    send(it_s->_fd, "\n", strlen("\n"), 0);
+
+                    // Remove the user from the channel's user list
+                    it_c->users.erase(it_s);
+
+                    // Remove the user from the operator list if they are an operator
+                    for (it_o = it_c->operators.begin(); it_o != it_c->operators.end(); ++it_o)
+                    {
+                        if (it_o->_nickname == user_kick)
+                        {
+                            it_c->operators.erase(it_o);
+                            break;
+                        }
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        // If the user to kick was not found in the channel's users list
+        if (it_s == it_c->users.end())
+            ErrorMsg(user._fd, (user_kick + " :No such nickname\n"), "401");
+    }
+    else
+    {
+        // Channel not found error
+        ErrorMsg(user._fd, (channel + " :No such channel.\n"), "403");
+    }
 }
