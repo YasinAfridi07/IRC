@@ -47,8 +47,7 @@ void	Check(int ac)
 }
 void	valid_arg(std::string a, std::string b, int c)
 {
-	if (a.empty() || b.empty() || c > MAX_PORT || a.length() > 5
-		|| a.find_first_not_of("0123456789") != std::string::npos)
+	if (a.empty() || b.empty() || c > MAX_PORT || a.length() > 5 || a.find_first_not_of("0123456789") != std::string::npos)
 	{
 		std::cerr << RED << "Error: invalid arguments !" << RESET << std::endl;
 		exit(0);
