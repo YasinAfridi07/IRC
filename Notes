@@ -1,0 +1,4 @@
+**Notes**
+
+- If someone disconnects, delete their fd from all channels and delete fd from all vectors. 
+- 

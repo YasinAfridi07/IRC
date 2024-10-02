@@ -32,11 +32,21 @@ public:
     std::string _nickname;
     std::string _password;
 	int	_fd;
-
-    User() {}
+    int cap;
+    int nick_flag, user_flag, pass_flag;
 
     User(const std::string &user, const std::string &nick, const std::string &pass)
-        : _username(user), _nickname(nick), _password(pass) {}
+        : _username(user), _nickname(nick), _password(pass), cap(0), nick_flag(0), user_flag(0), pass_flag(0) {}
+    User() {
+        _username = "";
+         _nickname = "";
+        _password = "";
+         cap = 0;
+         nick_flag = 0; 
+         user_flag = 0; 
+         pass_flag = 0;
+
+    }
 
     void setUser(const std::string &user) { _username = user; }
     void setNick(const std::string &nick) { _nickname = nick; }
@@ -45,8 +55,8 @@ public:
     std::string getUser() const { return _username; }
     std::string getNick() const { return _nickname; }
     std::string getPass() const { return _password; }
-    
-    void execute(std::string cmd, User *it);
+
+    void execute(std::string mes, User *user);
 };
 
 #endif
