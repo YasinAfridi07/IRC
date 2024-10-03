@@ -24,6 +24,7 @@ class Command{
 		void who(std::string channel_s, User user);
 		void privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user); // Yasin
 		void mode(std::string channel_s, std::string mode, User user, std::string arg);
+		void topic(std::string channel_s, std::string topic, User user);
 
 		std::vector<std::string> ft_split(std::string str, char delimiter);
 		std::vector<Channel>::iterator channel_exist(std::string channel);

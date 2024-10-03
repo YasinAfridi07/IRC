@@ -72,6 +72,69 @@ void Command::mode(std::string channel_s, std::string mode, User user, std::stri
     it_c->exec_mode(mode, user, arg);
 }
 
+// Pseudocode:
+// Check if the channel exists.
+// If the channel exists:
+// Check if the channel is in 't' mode.
+// If in 't' mode, check if the user is an operator.
+// If the user is an operator, set or get the topic based on the provided topic string.
+// If the user is not an operator, send an error message.
+// If not in 't' mode, set or get the topic based on the provided topic string.
+// If the channel does not exist, send an error message.
+void Command::topic(std::string channel_s, std::string topic, User user)
+{
+        // Check if channel exists
+        std::vector<Channel>::iterator it_c = channel_exist(channel_s);
+        if (it_c != Server::_channels.end())
+        {
+                // Check if channel is in 't' mode
+                if (it_c->isMode('t') == 1)
+                {
+                        // Check if user is an operator
+                        if (it_c->isOperator(user))
+                        {
+                                if (topic.empty())
+                                {
+                                        // Get the topic
+                                        std::string currentTopic = it_c->getTopic();
+                                        // Send the topic to the user
+                                        send(user._fd, currentTopic.c_str(), currentTopic.length(), 0);
+                                }
+                                else
+                                {
+                                        // Set the topic
+                                        it_c->setTopic(topic);
+                                        send(user._fd, "Topic set successfully.\n", strlen("Topic set successfully.\n"), 0);
+                                }
+                        }
+                        else
+                        {
+                                ErrorMsg(user._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
+                        }
+                }
+                else // if not in mode 't'
+                {
+                        if (topic.empty())
+                        {
+                                // Get the topic
+                                std::string currentTopic = it_c->getTopic();
+                                // Send the topic to the user
+                                send(user._fd, currentTopic.c_str(), currentTopic.length(), 0);
+                        }
+                        else
+                        {
+                                // Set the topic
+                                it_c->setTopic(topic);
+                                send(user._fd, "Topic set successfully.\n", strlen("Topic set successfully.\n"), 0);
+                        }
+                }
+        }
+        else
+        {
+                ErrorMsg(user._fd, (channel_s + " :No such channel.\n"), "403");
+        }
+}
+
 void User::process_cmd(std::string mes, User *user)
 {
 	std::vector<std::string> splitmsg = split(mes);
@@ -124,6 +187,21 @@ void User::process_cmd(std::string mes, User *user)
 			S.append(" :Not enough parameters\r\n");
 			send(user->_fd, S.c_str(), strlen(S.c_str()), 0);
 			return ;
+		}
+	}
+	else if (cmdType == "TOPIC")
+	{
+		if (splitmsg.size() == 3)
+		{
+			cmd.topic(splitmsg.at(1), splitmsg.at(2), *user);
+		}
+		else if (splitmsg.size() == 2)
+		{
+			cmd.topic(splitmsg.at(1), "", *user);
+		}
+		else
+		{
+			ErrorMsg(user->_fd, "TOPIC command requires 1 or 2 arguments\n", "461");
 		}
 	}
 	else if (cmdType == "MODE")
