@@ -233,6 +233,15 @@ void Server::handleClientMessages() {
             if ((valread = read(sd, c_buffer, BUFFER_SIZE)) == 0) {
                 handleClientDisconnection(i); // Handle disconnection
             } else {
+                if (c_buffer[valread - 1] != '\n'){//store
+                /* 
+                    the message limit! 512
+                    instead of having a general buffer! make one for each client!
+                    
+                */
+                    write(1, c_buffer, valread);
+                    write(1, ".", 1);
+                }
                 c_buffer[valread - 1] = '\0'; // Correctly null-terminate the string
                 std::string message(c_buffer);
                 std::vector<std::string> splitmsg = split(c_buffer);

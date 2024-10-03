@@ -17,11 +17,9 @@ Channel::Channel(std::string str_name, std::string str_pass)
 	this->_mode['l'] = 0;
     this->_user_limit = 0;
 }
-// Init all the veriables before creating the channel
 
 Channel::~Channel(void){}
 
-// GETTERS
 int	Channel::getUserInfo(void){return (_user_limit);}
 
 std::string	Channel::getTopic(void)
@@ -55,8 +53,6 @@ std::string Channel::getName(void) const
 	return (name);
 }
 
-
-// SETTERS
 
 void Channel::setUserInfo(int num)
 {
@@ -410,7 +406,8 @@ void Command::invite(std::string user, std::string channel, User user_object) {
     std::vector<Channel>::iterator it_c = channel_exist(channel);
     std::vector<User>::iterator it_s = user_exist(user);
 
-    if (it_c != Server::_channels.end()) {
+    if (it_c != Server::_channels.end()) 
+    {
         if (it_s != Server::users.end()) {
             if (it_c->isOperator(user_object) != 1) {
                 ErrorMsg(user_object._fd, "You are not an operator.\r\n", "482");

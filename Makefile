@@ -1,6 +1,6 @@
-NAME = main
+NAME = ircserv
 
-SRC = main.cpp Channel.cpp Server.cpp Extra.cpp Mode_Parsing.cpp Command.cpp
+SRC = ircserv.cpp Channel.cpp Server.cpp Extra.cpp Mode_Parsing.cpp Command.cpp
 
 CXX = c++
 

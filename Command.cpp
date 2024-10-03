@@ -90,57 +90,69 @@ void Command::mode(std::string channel_s, std::string mode, User user, std::stri
 // If the channel does not exist, send an error message.
 void Command::topic(std::string channel_s, std::string topic, User user)
 {
-        // Check if channel exists
-        std::vector<Channel>::iterator it_c = channel_exist(channel_s);
-        if (it_c != Server::_channels.end())
+    std::string serverName = "FT_IRC";  // Замените на реальное имя вашего сервера
+
+    // Check if channel exists
+    std::vector<Channel>::iterator it_c = channel_exist(channel_s);
+    if (it_c != Server::_channels.end())
+    {
+        std::string reply;
+        // Check if channel is in 't' mode
+        if (it_c->isMode('t') == 1)
         {
-                // Check if channel is in 't' mode
-                if (it_c->isMode('t') == 1)
+            // Check if user is an operator
+            if (it_c->isOperator(user))
+            {
+                if (topic.empty())
                 {
-                        // Check if user is an operator
-                        if (it_c->isOperator(user))
-                        {
-                                if (topic.empty())
-                                {
-                                        // Get the topic
-                                        std::string currentTopic = it_c->getTopic();
-                                        // Send the topic to the user
-                                        send(user._fd, currentTopic.c_str(), currentTopic.length(), 0);
-                                }
-                                else
-                                {
-                                        // Set the topic
-                                        it_c->setTopic(topic);
-                                        send(user._fd, "Topic set successfully.\n", strlen("Topic set successfully.\n"), 0);
-                                }
-                        }
-                        else
-                        {
-                                ErrorMsg(user._fd, "Permission Denied- You're not an operator of the channel.\n", "482");
-                        }
+                    // Get the topic
+                    std::string currentTopic = it_c->getTopic();
+                    // Send the topic to the user in IRC format
+                    reply = ":" + serverName + " 332 " + user._nickname + " " + channel_s + " :" + currentTopic + "\r\n";
+                    send(user._fd, reply.c_str(), reply.length(), 0);
                 }
-                else // if not in mode 't'
+                else
                 {
-                        if (topic.empty())
-                        {
-                                // Get the topic
-                                std::string currentTopic = it_c->getTopic();
-                                // Send the topic to the user
-                                send(user._fd, currentTopic.c_str(), currentTopic.length(), 0);
-                        }
-                        else
-                        {
-                                // Set the topic
-                                it_c->setTopic(topic);
-                                send(user._fd, "Topic set successfully.\n", strlen("Topic set successfully.\n"), 0);
-                        }
+                    // Set the topic
+                    it_c->setTopic(topic);
+                    reply = ":" + serverName + " TOPIC " + channel_s + " :" + topic + "\r\n";
+                    send(user._fd, reply.c_str(), reply.length(), 0);
                 }
+            }
+            else
+            {
+                // Error: You're not an operator
+                reply = ":" + serverName + " 482 " + user._nickname + " " + channel_s + " :You're not an operator of the channel.\r\n";
+                send(user._fd, reply.c_str(), reply.length(), 0);
+            }
         }
-        else
+        else // if not in mode 't'
         {
-                ErrorMsg(user._fd, (channel_s + " :No such channel.\n"), "403");
+            if (topic.empty())
+            {
+                // Get the topic
+                std::string currentTopic = it_c->getTopic();
+                // Send the topic to the user in IRC format
+                reply = ":" + serverName + " 332 " + user._nickname + " " + channel_s + " :" + currentTopic + "\r\n";
+                send(user._fd, reply.c_str(), reply.length(), 0);
+            }
+            else
+            {
+                // Set the topic
+                it_c->setTopic(topic);
+                reply = ":" + serverName + " TOPIC " + channel_s + " :" + topic + "\r\n";
+                send(user._fd, reply.c_str(), reply.length(), 0);
+            }
         }
+    }
+    else
+    {
+        // Error: No such channel
+        std::string reply = ":" + serverName + " 403 " + user._nickname + " " + channel_s + " :No such channel.\r\n";
+        send(user._fd, reply.c_str(), reply.length(), 0);
+    }
 }
+
 
 std::vector<std::string> Command::ft_split(std::string str, char delimiter)
 {
