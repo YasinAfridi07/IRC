@@ -23,19 +23,19 @@ void Command::who(std::string channel_s, User user) {
     }
 
     // Prepare the user list
-    std::string userList = "Users in " + it->getName() + ": ";
+    std::string userList = "NAMES " + it->getName() + " :";
 
     // Get the users in the channel
     std::vector<User> usersInChannel = it->getUsers();
     
     // Use a traditional for loop to append all user nicknames
     for (std::vector<User>::iterator it_user = usersInChannel.begin(); it_user != usersInChannel.end(); ++it_user) {
-        userList += it_user->_nickname + ", "; // Append each user's nickname
+        userList += it_user->_nickname + " "; // Append each user's nickname
     }
 
-    // Trim the trailing comma and space
+    // Trim the trailing space
     if (!usersInChannel.empty()) {
-        userList.erase(userList.length() - 2); // Remove the last comma and space
+        userList.erase(userList.length() - 1); // Remove the last space
     }
 
     // Add \r\n at the end of the message
@@ -44,6 +44,7 @@ void Command::who(std::string channel_s, User user) {
     // Send the user list to the user who requested it
     send(user._fd, userList.c_str(), userList.length(), 0);
 }
+
 
 
 void Command::mode(std::string channel_s, std::string mode, User user, std::string arg) {

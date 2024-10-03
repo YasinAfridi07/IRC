@@ -119,102 +119,7 @@ void Server::handleClientDisconnection(size_t i)
 	users.erase(users.begin() + i); // Удаляем пользователя из списка
 }
 
-// Обработка команды USER
-void Server::handleUserCommand(size_t i, const std::string &message)
-{
-	const char	*errorMsg;
 
-	if (!users[i].getUser().empty())
-	{
-		std::cerr << RED << "Error: USER already set and cannot be changed" << RESET << std::endl;
-		errorMsg = RED "Error: USER already set and cannot be changed.\n" RESET;
-		send(sd, errorMsg, strlen(errorMsg), 0);
-	}
-	else
-	{
-		std::string user = message.substr(5);
-		// Извлекаем имя пользователя после "USER "
-		users[i].setUser(user);
-		std::cout << GREEN << "Set USER: " << user << std::endl << RESET;
-	}
-}
- 
-// Обработка команды NICK
-void Server::handleNickCommand(size_t i, const std::string &message)
-{
-	const char	*errorMsg;
-
-	if (!users[i].getNick().empty())
-	{
-		std::cerr << RED << "Error: NICK already set and cannot be changed" << RESET << std::endl;
-		errorMsg = RED "Error: NICK already set and cannot be changed.\n" RESET;
-		send(sd, errorMsg, strlen(errorMsg), 0);
-	}
-	else
-	{
-		std::string nick = message.substr(5); // Извлекаем никнейм после "NICK "
-		users[i].setNick(nick);
-		std::cout << GREEN << "Set NICK: " << nick << std::endl << RESET;
-	}
-}
-
-// Обработка команды PASS
-void Server::handlePassCommand(size_t i, const std::string &message)
-{
-	const char	*errorMsg;
-
-	if (!users[i].getPass().empty())
-	{
-		std::cerr << RED << "Error: PASS already set and cannot be changed" << RESET << std::endl;
-		errorMsg = RED "Error: PASS already set and cannot be changed.\n" RESET;
-		send(sd, errorMsg, strlen(errorMsg), 0);
-	}
-	else
-	{
-		std::string pass = message.substr(5);
-		// Извлекаем пароль после "PASS "
-		pass.erase(0, pass.find_first_not_of(" \n\r\t"));
-		// Удаляем пробелы в начале
-		pass.erase(pass.find_last_not_of(" \n\r\t") + 1);
-		// Удаляем пробелы в конце
-		if (pass != _password)
-		{
-			std::cerr << RED << "Error: invalid password" << RESET << std::endl;
-			errorMsg = RED "Error: invalid password.\n" RESET;
-			send(sd, errorMsg, strlen(errorMsg), 0);
-		}
-		else
-		{
-			users[i].setPass(pass);
-			std::cout << GREEN << "Set PASS: " << pass << std::endl << RESET;
-		}
-	}
-}
-
-
-// Проверка, авторизован ли пользователь
-bool Server::isUserAuthorized(size_t i) {
-    if (users[i]._nickname.empty()) {
-        std::cerr << "Error: user not authorized, missing NICK" << std::endl;
-        std::cout << users[i]._nickname << std::endl;
-        const char *errorMsg = "Error: user not authorized. Please provide NICK\n";
-        send(sd, errorMsg, strlen(errorMsg), 0);
-        return false;
-    }
-    if (users[i]._password.empty()) {
-        std::cerr << "Error: user not authorized, missing PASS" << std::endl;
-        const char *errorMsg = "Error: user not authorized. Please provide PASS.\n";
-        send(sd, errorMsg, strlen(errorMsg), 0);
-        return false;
-    }
-    if (users[i]._username.empty()) {
-        std::cerr << "Error: user not authorized, missing USER" << std::endl;
-        const char *errorMsg = "Error: user not authorized. Please provide USER.\n";
-        send(sd, errorMsg, strlen(errorMsg), 0);
-        return false;
-    }
-    return true;
-}
 
 void User::execute(std::string mes, User *user) {
     std::vector<std::string> splitmsg = split(mes);
@@ -232,7 +137,7 @@ void User::execute(std::string mes, User *user) {
         } else {
             return;
         }
-    } else if (cmdType == "CHANUSER") {   
+    } else if (cmdType == "WHO") {   
         if (splitmsg.size() == 2) {
             cmd.who(splitmsg.at(1), *user);
         } else {
@@ -273,8 +178,27 @@ void User::execute(std::string mes, User *user) {
         } else {
             ErrorMsg(user->_fd, "461 :Not enough parameters\r\n", "461");
         }
-    } else if (cmdType != "NICK" && cmdType != "PASS" && cmdType != "USER" && cmdType != "CAP") {
+    }
+    else if(cmdType == "CAP")
+    {
+        std::string firstServerMsg = ":irc CAP * ACK multi-prefix\r\n";
+        send(user->_fd, firstServerMsg.c_str(), firstServerMsg.length(), 0);
+    } 
+    else if (cmdType != "NICK" && cmdType != "PASS" && cmdType != "USER" && cmdType != "CAP") {
         ErrorMsg(user->_fd, "421 :Unknown command\r\n", "421");
+    }
+    else if(cmdType == "NICK" || cmdType == "PASS" || cmdType == "USER")
+    {
+        if (user->cap == 0) 
+        {
+        std::string wlcmMsg = ":irc 001 " + user->_nickname + " :Welcome to FT_IRC, " + user->_username + "@" + Server::_hostName + "\r\n"
+                      ":irc 002 " + user->_nickname + " :Your host is " + Server::_hostName + ", running version 1.0\r\n"
+                      ":irc 003 " + user->_nickname + " :This server was created in 42 labs at July\r\n"
+                      ":irc 004 " + user->_nickname + " " + Server::_hostName + " 1.0 o OIRSv o oirwkl bkl\r\n"  // Sample modes
+                      ":irc 005 " + user->_nickname + " MODES=20 CHANLIMIT=#&:100 NICKLEN=9 TOPICLEN=390 CHANTYPES=#& :are supported by this server\r\n";
+        send(user->_fd, wlcmMsg.c_str(), wlcmMsg.length(), 0);
+            user->cap = 1;
+        };
     }
 }
 
@@ -297,46 +221,76 @@ void Server::handleClientMessages() {
                 c_buffer[valread - 1] = '\0'; // Correctly null-terminate the string
                 std::string message(c_buffer);
                 std::vector<std::string> splitmsg = split(c_buffer);
-                // printSplitMsg(splitmsg);
+
+                // Process commands
                 for (size_t j = 0; j < splitmsg.size(); j++) {
-                    if (splitmsg[j] == "NICK" &&  splitmsg.size() > 1) {
+                    if (splitmsg[j] == "NICK" && splitmsg.size() > 1) {
                         std::string nick = splitmsg[j + 1];
-                        users[i]._nickname = nick; // Сохраняем ник
+                        if (isNicknameTaken(nick)) {
+                            // Disconnect user if nickname is already taken
+                            std::string errorMsg = ":irc 433 " + nick + " :Nickname is already in use\r\n";
+                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+                            handleClientDisconnection(i); // Disconnect user
+                            return; // Exit early
+                        }
+                        users[i]._nickname = nick; // Save nickname
                         users[i].nick_flag = 1;
-                    }  
+                    }
+
                     if (splitmsg[j] == "USER" && splitmsg.size() > 1) {
                         std::string user = splitmsg[j + 1];
-                        users[i].setUser(user); // Сохраняем пользователя
+                        if (isUsernameTaken(user)) {
+                            // Disconnect user if username is already taken
+                            std::string errorMsg = ":irc 433 " + user + " :Username is already in use\r\n";
+                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+                            handleClientDisconnection(i); // Disconnect user
+                            return; // Exit early
+                        }
+                        users[i].setUser(user); // Save username
                         users[i].user_flag = 1;
-                    } 
+                    }
+
                     if (splitmsg[j] == "PASS" && splitmsg.size() > 1) {
                         std::string pass = splitmsg[j + 1];
-                        users[i]._password = pass; // Сохраняем пароль
+                        users[i]._password = pass; // Save password
                         users[i].pass_flag = 1;
+                        if (users[i]._password != Server::_password) {
+                            std::string errorMsg = ":irc 464 " + users[i]._nickname + " :Wrong password\r\n";
+                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+                            handleClientDisconnection(i); // Disconnect user
+                            return; // Exit early
+                        }
                     }
                 }
-                // addd auth for user check is nick alredy exist
-                // std::cout << sd << " его sd" << std::endl;
-                // std::cout << "NICKNAME = " <<users[i]._nickname << " and flag = " << users[i].nick_flag << std::endl;
-                // std::cout << "PASSWORD = " <<users[i]._password << " and flag = " << users[i].pass_flag << std::endl;
-                // std::cout << "USERNAME = " <<users[i]._username << " and flag = " << users[i].user_flag << std::endl;
+
+                // Check if user has completed registration
                 if (users[i].pass_flag == 1 && users[i].nick_flag == 1 && users[i].user_flag == 1) {
-                    if (users[i].cap == 0) {
-			std::string wlcmMsg = ":irc 001 " + users[i]._nickname + " :Welcome to FT_IRC, " + users[i]._username + "@" + Server::_hostName + "\n"
-								  ":irc 002 " + users[i]._nickname + " :Host is " + Server::_hostName + ", running version 1.0\n"
-								  ":irc 003 " + users[i]._nickname + " :Created in 42 labs at July\n";
-                        send(users[i]._fd, wlcmMsg.c_str(), strlen(wlcmMsg.c_str()), 0);
-                        std::string firstServerMsg = "CAP * ACK multi-prefix\r\n";
-                        send(sd, firstServerMsg.c_str(), firstServerMsg.length(), 0);
-                        // std::cout << "new client connected FD:" << sd << RESET << std::endl;
-                        users[i].cap = 1;
-                    }
                     users[i].execute(message, &users[i]); // Pass the current user
                 }
             }
         }
     }
 }
+
+
+bool Server::isNicknameTaken(const std::string &nick) {
+    for (size_t i = 0; i < users.size(); ++i) {
+        if (users[i]._nickname == nick) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Server::isUsernameTaken(const std::string &user) {
+    for (size_t i = 0; i < users.size(); ++i) {
+        if (users[i]._username == user) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 void Server::run() 
 {
@@ -366,3 +320,13 @@ void Server::run()
 // line 199 put "serverSocket" and "&readfds" in server class
 // for Tim ^^^
 //hi
+
+
+/* 
+
+NOTE: look the actual doc for irc: https://modern.ircdocs.horse
+
+1. CAP command
+2. FINISH the 5 mandatory welcome name-replays
+3. send Message of the Day (MOTD)
+ */

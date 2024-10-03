@@ -10,10 +10,13 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include "Server.hpp"
-
-
+#include <ctime>
+#include <string>
+#include <vector>
+#include <map>
 
 class User;
+
 class Channel
 {
 	private:
@@ -21,8 +24,9 @@ class Channel
 		std::string _pass;
 		std::string _topic;
 		std::map<char, int> _mode;
+		time_t _creation_time; // Add creation time variable
 	public:
-		Channel(); // why private
+		Channel();
 		std::string name;
 		std::vector<User> invites;
 		std::vector<User> operators;
@@ -41,6 +45,11 @@ class Channel
 		std::vector<User> getUsers();
 		std::vector<User> getOperators();
 		std::string getName() const;
+		time_t getCreationTime() const;
+		void sendUserListToChannel();
+		void sendChannelSummary() ;
+		void sendCreationTime();
+		void sendWelcomeMessage(User user_object);
 
 		void setUserInfo(int num);
 		void setTopic(std::string str);
@@ -48,26 +57,23 @@ class Channel
 		void setMode(char m, char sign);
 
 		void addUserToChannel(User new_user_object);
-		//void kickUser(std::string user_kick, const std::vector<std::string>& splitmsg, User user); // tim
-		void exec_mode(std::string mode, User &user_object, std::string arg); // ayan
+		void exec_mode(std::string mode, User &user_object, std::string arg);
 		std::vector<User>::iterator user_in_chan(int fd);
 		std::vector<User>::iterator channel_operator(int fd);
 		std::vector<User>::iterator inv_in_chan(int fd);
 		int user_length(void);
 
-
-		int isInvited(User user); // tim
-		int isMode(char m); // ayan
+		int isInvited(User user);
+		int isMode(char m);
 		int isOperator(User user);
-		int isUser(User user); //  tim
+		int isUser(User user);
 		void delete_from_all(User& user); 
-
-
 
 		void removeUser(User& user);
 		void removeInvite(User& user);
 		void removeOperator(User& user);
 		bool isEmpty();
 };
+
 
 #endif
