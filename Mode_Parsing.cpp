@@ -88,16 +88,26 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg) {
             }
             break;
         }
-
         case 'l':
             if (mode[0] == '+') {
-                if (std::atoi(arg.c_str()) <= 0) {
+                int new_limit = std::atoi(arg.c_str());
+                if (new_limit <= 0) {
                     send(user_object._fd, "Invalid limit number.\r\n", strlen("Invalid limit number.\r\n"), 0);
                 } else {
-                    this->_user_limit = std::atoi(arg.c_str());
+                    if (this->user_length() > new_limit) {
+                        // Prevent setting the limit if the current user count exceeds the new limit
+                        send(user_object._fd, "Cannot set limit. Current user count exceeds the new limit.\r\n", strlen("Cannot set limit. Current user count exceeds the new limit.\r\n"), 0);
+                    } else {
+                        // Set the new limit
+                        this->_user_limit = new_limit;
+                        // Notify the client that the channel now has a limit
+                        std::string limit_msg = "Channel " + this->getName() + " now has a user limit of " + std::to_string(this->_user_limit) + ".\r\n";
+                        send(user_object._fd, limit_msg.c_str(), limit_msg.length(), 0);
+                    }
                 }
             }
             break;
+
     }
     this->setMode(mode[1], mode[0]); // Set the mode
 }

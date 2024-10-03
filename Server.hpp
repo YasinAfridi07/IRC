@@ -94,10 +94,8 @@ public:
 	static void run(void);
 	static void acceptConnection(void);
 	static void handleClientDisconnection(size_t i);
-	static void handleNickCommand(size_t i, const std::string& message);
-	static void handleUserCommand(size_t i, const std::string& message);
-	static bool isUserAuthorized(size_t i);
-	static void handlePassCommand(size_t i, const std::string& message);
+	static bool isNicknameTaken(const std::string& nickname);
+	static bool isUsernameTaken(const std::string& username);
 	// static void showUsers(void);
 	// static void showChannels(void);
 	// static std::string getPassword(void);

@@ -3,7 +3,6 @@
 // #include "Command.hpp"
 #include <cstring>
 #define JOIN "JOIN"
-#define PRIVMSG_RPLY(senderNick, senderUsername, clientIp, revieverNick, msg)                std::string(userHostMask(senderNick, senderUsername, clientIp)+" PRIVMSG "+revieverNick+" :"+msg+"\r\n")
 Channel::Channel(std::string str_name, std::string str_pass)
 {
 	this->name = str_name;
@@ -16,6 +15,7 @@ Channel::Channel(std::string str_name, std::string str_pass)
 	this->_mode['k'] = 0;
 	this->_mode['o'] = 0;
 	this->_mode['l'] = 0;
+    this->_user_limit = 0;
 }
 // Init all the veriables before creating the channel
 
@@ -88,36 +88,100 @@ int Channel::isMode(char m)
 
 int Channel::user_length(void)
 {
-	int length = 0;
-	it_user = users.begin();
+	int len = 0;
 
-	while (it_user != users.end())
-	{
-		length++;
-	}
-	return(length);
-
+	for (it_user = users.begin(); it_user != users.end(); it_user++)
+		len++;
+	return (len);
 }
 
-void Channel::addUserToChannel(User user_object)
-{
-	if(operators.size() == 0)
-	{
-		operators.push_back(User(user_object));
-	}
-	if(this->isMode('l'))
-	{
-		if(this->user_length() == this->_user_limit)
-		{
-			ErrorMsg(user_object._fd, ("getname() here --->" +this->getName() + "Channel is Full"), "471"); // remove "getname() ---> here after testing"
-			return ;
-		}
-	}
-	users.push_back(User(user_object));
-	std::string channel_welcome_msg;
-	channel_welcome_msg = "\n - Welcome to Channel \n";
-	send(user_object._fd, channel_welcome_msg.c_str(), strlen(channel_welcome_msg.c_str()), 0);
+
+
+time_t Channel::getCreationTime() const {
+    // Assuming you have a member variable _creationTime that stores the creation time
+    return _creation_time; // Return by value
 }
+
+void Channel::addUserToChannel(User user_object) {
+    // If no operators exist, add the first user as an operator
+    if (operators.empty()) {
+        operators.push_back(User(user_object));
+    }
+
+    // Check for user limit if the channel is in limit mode
+    if (this->isMode('l')) {
+        if (this->user_length() == this->_user_limit) {
+            ErrorMsg(user_object._fd, (this->getName() + " :Channel is full.\r\n"), "471");
+            return;
+        }
+    }
+
+    // Add the user to the channel's user list
+    users.push_back(User(user_object));
+
+    // Notify the channel that the user has joined
+    std::string join_message = ":" + user_object._nickname + "!" + user_object._username + "@localhost JOIN " + this->getName() + "\r\n";
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        send(it->_fd, join_message.c_str(), join_message.length(), 0); // Send join message
+    }
+
+    // List of users in the channel
+    std::string user_list = ":irc NOTICE " + this->getName() + " :[" + this->getName() + "] Users in channel: [";
+    if (!operators.empty()) {
+        user_list += "@" + operators[0].getNick(); // Add operator
+    }
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        if (it != users.begin() || !operators.empty()) {
+            user_list += " " + it->getNick();
+        }
+    }
+    user_list += "]\r\n";
+
+    // Send the user list to all users in the channel
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        send(it->_fd, user_list.c_str(), user_list.length(), 0); // Send user list as NOTICE
+    }
+
+    // Send a summary of nicks and status (ops, voices, etc.)
+    std::string channel_summary = ":irc NOTICE " + this->getName() + " :-!- " + this->getName() + ": Total of " + std::to_string(users.size()) + " nicks [";
+    channel_summary += std::to_string(operators.size()) + " ops, 0 halfops, 0 voices, " +
+                       std::to_string(users.size() - operators.size()) + " normal]\r\n";
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        send(it->_fd, channel_summary.c_str(), channel_summary.length(), 0); // Send summary as NOTICE
+    }
+
+    // Send the creation time of the channel
+    time_t creation_time = this->getCreationTime(); // Get the creation time by value
+    std::ostringstream oss;
+    oss << std::ctime(&creation_time); // Convert time_t to string
+    std::string creation_time_str = oss.str();
+    creation_time_str.erase(creation_time_str.end() - 1); // Remove the newline character
+    std::string creation_msg = ":irc NOTICE " + this->getName() + " :-!- Channel " + this->getName() + " created " + creation_time_str + "\r\n";
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it) {
+        send(it->_fd, creation_msg.c_str(), creation_msg.length(), 0); // Send creation message as NOTICE
+    }
+
+    std::string channel_welcome_msg;
+    channel_welcome_msg = GREEN "Welcome to " + this->getName() + " channel, " + user_object._nickname + "!" RESET "\r\n";
+    channel_welcome_msg += BLUE "Here are some commands you can use:" RESET "\r\n";
+    channel_welcome_msg += CYAN " - JOIN <channel> [key]: Join a channel" RESET "\r\n";
+    channel_welcome_msg += CYAN " - PART <channel>: Leave a channel" RESET "\r\n";
+    channel_welcome_msg += CYAN " - MSG <user/channel> <message>: Send a private message" RESET "\r\n";
+    channel_welcome_msg += CYAN " - NICK <new_nickname>: Change your nickname" RESET "\r\n";
+    channel_welcome_msg += CYAN " - WHO <channel>: List users in a channel" RESET "\r\n";
+    channel_welcome_msg += CYAN " - INVITE <channel> <user>: Invite a user to a channel" RESET "\r\n";
+    channel_welcome_msg += CYAN " - KICK <user> <channel>: Kick a user from a channel" RESET "\r\n";
+    channel_welcome_msg += CYAN " - TOPIC <channel> <topic>: Set the channel topic" RESET "\r\n";
+    channel_welcome_msg += CYAN " - MODE <channel> <mode(eg: +/-i, +/-o, +/-t, +/-k, +/-l)> [parameters]: Set channel modes" RESET "\r\n";
+
+    // Send the welcome message to the new user
+    send(user_object._fd, channel_welcome_msg.c_str(), channel_welcome_msg.length(), 0);
+}
+
+
+
+
+
 
 
 int Channel::isUser(User user)
@@ -245,12 +309,51 @@ std::vector<User>::iterator Command::user_exist(std::string nick)
 	}
 	return user_it;
 }
+const std::vector<std::string> createEightBallResponses() {
+    std::vector<std::string> responses;
+    responses.push_back("It is certain.");
+    responses.push_back("It is decidedly so.");
+    responses.push_back("Without a doubt.");
+    responses.push_back("Yes – definitely.");
+    responses.push_back("You may rely on it.");
+    responses.push_back("As I see it, yes.");
+    responses.push_back("Most likely.");
+    responses.push_back("Outlook good.");
+    responses.push_back("Yes.");
+    responses.push_back("Signs point to yes.");
+    responses.push_back("Reply hazy, try again.");
+    responses.push_back("Ask again later.");
+    responses.push_back("Better not tell you now.");
+    responses.push_back("Cannot predict now.");
+    responses.push_back("Concentrate and ask again.");
+    responses.push_back("Don't count on it.");
+    responses.push_back("My reply is no.");
+    responses.push_back("My sources say no.");
+    responses.push_back("Outlook not so good.");
+    responses.push_back("Very doubtful.");
+    return responses;
+}
+
+// Define the constant vector
+const std::vector<std::string> eightBallResponses = createEightBallResponses();
 
 void Command::privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user) {
+
     std::vector<Channel>::iterator it_channel;
     std::vector<User>::iterator it_user;
     unsigned long i = 2;
 
+    // Check if the message is a request for the 8-ball
+    if (splitmsg.size() > 1 && splitmsg[1] == "!8ball") {
+        // Randomly select a response
+        srand(time(0)); // Seed the random number generator
+        int responseIndex = rand() % eightBallResponses.size();
+        std::string response = receiver + " :" + eightBallResponses[responseIndex] + "\r\n";
+
+        // Send the response back to the user
+        send(user._fd, response.c_str(), response.length(), 0);
+        return; // Exit after responding to the 8-ball request
+    }
     // Check if the receiver is a user
     it_user = user_exist(receiver);
     if (it_user == Server::users.end()) {
@@ -266,7 +369,7 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
                         std::string msg = ":" + user._nickname + " PRIVMSG " + receiver + " :";
                         send(it->_fd, msg.c_str(), msg.length(), 0);
                         while (i < splitmsg.size()) {
-                            send(it->_fd, (splitmsg.at(i)).c_str(), strlen((splitmsg.at(i)).c_str()), 0);
+                            send(it->_fd, splitmsg.at(i).c_str(), strlen(splitmsg.at(i).c_str()), 0);
                             if (i + 1 < splitmsg.size()) {
                                 send(it->_fd, " ", 1, 0); // Send space only if there's another message
                             }
@@ -288,7 +391,7 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
             std::string msg = ":" + user._nickname + " PRIVMSG " + receiver + " :";
             send(it_user->_fd, msg.c_str(), msg.length(), 0);
             while (i < splitmsg.size()) {
-                send(it_user->_fd, (splitmsg.at(i)).c_str(), strlen((splitmsg.at(i)).c_str()), 0);
+                send(it_user->_fd, splitmsg.at(i).c_str(), strlen(splitmsg.at(i).c_str()), 0);
                 if (i + 1 < splitmsg.size()) {
                     send(it_user->_fd, " ", 1, 0); // Send space only if there's another message
                 }
@@ -298,12 +401,8 @@ void Command::privmsg(std::string receiver, const std::vector<std::string>& spli
             i = 2; // Reset for next message
         }
     }
-
-    // If receiver is not found as user or channel, send error message
-    if (it_user == Server::users.end() && it_channel == Server::_channels.end()) {
-        ErrorMsg(user._fd, (receiver + " :No such nickname or channel.\r\n"), "401");
-    }
 }
+
 
 
 
