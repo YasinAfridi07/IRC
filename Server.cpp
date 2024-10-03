@@ -179,6 +179,21 @@ void User::execute(std::string mes, User *user) {
             ErrorMsg(user->_fd, "461 :Not enough parameters\r\n", "461");
         }
     }
+    else if (cmdType == "TOPIC")
+	{
+		if (splitmsg.size() == 3)
+		{
+			cmd.topic(splitmsg.at(1), splitmsg.at(2), *user);
+		}
+		else if (splitmsg.size() == 2)
+		{
+			cmd.topic(splitmsg.at(1), "", *user);
+		}
+		else
+		{
+			ErrorMsg(user->_fd, "TOPIC command requires 1 or 2 arguments\n", "461");
+		}
+	}
     else if(cmdType == "CAP")
     {
         std::string firstServerMsg = ":irc CAP * ACK multi-prefix\r\n";
