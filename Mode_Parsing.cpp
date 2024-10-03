@@ -60,7 +60,8 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg) {
                     break;
                 ++it_s;
             }
-            if (it_s != this->users.end()) {
+            if (it_s != this->users.end())
+			{
                 if (mode[0] == '+') {
                     if (this->isOperator(*it_s)) {
                         send(user_object._fd, "User is already the operator.\r\n", strlen("User is already the operator.\r\n"), 0);
@@ -81,8 +82,9 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg) {
                         send(user_object._fd, "User is not an operator.\r\n", strlen("User is not an operator.\r\n"), 0);
                     }
                 }
-            } else {
-                ErrorMsg(user_object._fd, (arg + " :No such nickname.\r\n"), "401"); // User not found
+            } else
+			{
+                ErrorMsg(user_object._fd, (arg + " :No such nickname. \r\n"), "401"); // User not found
             }
             break;
         }

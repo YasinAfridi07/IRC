@@ -14,7 +14,8 @@ Command::~Command(void)
 	// destructor
 }
 
-void Command::who(std::string channel_s, User user) {
+void Command::who(std::string channel_s, User user)
+{
     // Find the channel
     std::vector<Channel>::iterator it = channel_exist(channel_s);
     if (it == Server::_channels.end()) {
@@ -27,7 +28,7 @@ void Command::who(std::string channel_s, User user) {
 
     // Get the users in the channel
     std::vector<User> usersInChannel = it->getUsers();
-    
+
     // Use a traditional for loop to append all user nicknames
     for (std::vector<User>::iterator it_user = usersInChannel.begin(); it_user != usersInChannel.end(); ++it_user) {
         userList += it_user->_nickname + ", "; // Append each user's nickname
