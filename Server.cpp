@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <unordered_map>
 
 // Initialize static member variables of the Server class
 std::string Server::_password = ""; // Server password
@@ -36,6 +37,7 @@ struct sockaddr_in Server::address; // Server address structure
 fd_set Server::readfds;
 // Set of socket descriptors for select()
 std::vector<Channel> Server::_channels;
+std::unordered_map<int, std::string> partialCommands;
 
 void	Check(int ac)
 {
@@ -231,70 +233,78 @@ void Server::handleClientMessages() {
         sd = _fds[i];
         if (FD_ISSET(sd, &readfds)) {
             if ((valread = read(sd, c_buffer, BUFFER_SIZE)) == 0) {
-                handleClientDisconnection(i); // Handle disconnection
+                handleClientDisconnection(i);
             } else {
-                if (c_buffer[valread - 1] != '\n'){//store
-                /* 
-                    the message limit! 512
-                    instead of having a general buffer! make one for each client!
+                c_buffer[valread] = '\0';  // Null-terminate the received data
+                
+                // Append received data to any existing partial command
+                partialCommands[sd] += c_buffer;
+                
+                // Process complete commands
+                size_t pos;
+                while ((pos = partialCommands[sd].find('\n')) != std::string::npos) {
+                    std::string command = partialCommands[sd].substr(0, pos);
+                    partialCommands[sd] = partialCommands[sd].substr(pos + 1);
                     
-                */
-                    write(1, c_buffer, valread);
-                    write(1, ".", 1);
-                }
-                c_buffer[valread - 1] = '\0'; // Correctly null-terminate the string
-                std::string message(c_buffer);
-                std::vector<std::string> splitmsg = split(c_buffer);
-
-                // Process commands
-                for (size_t j = 0; j < splitmsg.size(); j++) {
-                    if (splitmsg[j] == "NICK" && splitmsg.size() > 1) {
-                        std::string nick = splitmsg[j + 1];
-                        if (isNicknameTaken(nick)) {
-                            // Disconnect user if nickname is already taken
-                            std::string errorMsg = ":irc 433 " + nick + " :Nickname is already in use\r\n";
-                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
-                            handleClientDisconnection(i); // Disconnect user
-                            return; // Exit early
-                        }
-                        users[i]._nickname = nick; // Save nickname
-                        users[i].nick_flag = 1;
+                    // Remove '\r' if present
+                    if (!command.empty() && command.back() == '\r') {
+                        command.pop_back();
                     }
-
-                    if (splitmsg[j] == "USER" && splitmsg.size() > 1) {
-                        std::string user = splitmsg[j + 1];
-                        if (isUsernameTaken(user)) {
-                            // Disconnect user if username is already taken
-                            std::string errorMsg = ":irc 433 " + user + " :Username is already in use\r\n";
-                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
-                            handleClientDisconnection(i); // Disconnect user
-                            return; // Exit early
-                        }
-                        users[i].setUser(user); // Save username
-                        users[i].user_flag = 1;
-                    }
-
-                    if (splitmsg[j] == "PASS" && splitmsg.size() > 1) {
-                        std::string pass = splitmsg[j + 1];
-                        users[i]._password = pass; // Save password
-                        users[i].pass_flag = 1;
-                        if (users[i]._password != Server::_password) {
-                            std::string errorMsg = ":irc 464 " + users[i]._nickname + " :Wrong password\r\n";
-                            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
-                            handleClientDisconnection(i); // Disconnect user
-                            return; // Exit early
-                        }
-                    }
-                }
-
-                // Check if user has completed registration
-                if (users[i].pass_flag == 1 && users[i].nick_flag == 1 && users[i].user_flag == 1) {
-                    users[i].execute(message, &users[i]); // Pass the current user
+                    
+                    processCommand(sd, command);
                 }
             }
         }
     }
 }
+
+void Server::processCommand(int sd, const std::string& command) {
+    std::vector<std::string> splitmsg = split(command);
+    
+    if (splitmsg.empty()) {
+        return;
+    }
+
+    size_t userIndex = std::distance(_fds.begin(), std::find(_fds.begin(), _fds.end(), sd));
+
+    if (splitmsg[0] == "NICK" && splitmsg.size() > 1) {
+        std::string nick = splitmsg[1];
+        if (isNicknameTaken(nick)) {
+            std::string errorMsg = ":irc 433 " + nick + " :Nickname is already in use\r\n";
+            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+            handleClientDisconnection(userIndex);
+            return;
+        }
+        users[userIndex]._nickname = nick;
+        users[userIndex].nick_flag = 1;
+    } else if (splitmsg[0] == "USER" && splitmsg.size() > 1) {
+        std::string user = splitmsg[1];
+        if (isUsernameTaken(user)) {
+            std::string errorMsg = ":irc 433 " + user + " :Username is already in use\r\n";
+            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+            handleClientDisconnection(userIndex);
+            return;
+        }
+        users[userIndex].setUser(user);
+        users[userIndex].user_flag = 1;
+    } else if (splitmsg[0] == "PASS" && splitmsg.size() > 1) {
+        std::string pass = splitmsg[1];
+        users[userIndex]._password = pass;
+        users[userIndex].pass_flag = 1;
+        if (users[userIndex]._password != Server::_password) {
+            std::string errorMsg = ":irc 464 " + users[userIndex]._nickname + " :Wrong password\r\n";
+            send(sd, errorMsg.c_str(), errorMsg.length(), 0);
+            handleClientDisconnection(userIndex);
+            return;
+        }
+    }
+
+    // Check if user has completed registration
+    if (users[userIndex].pass_flag == 1 && users[userIndex].nick_flag == 1 && users[userIndex].user_flag == 1) {
+        users[userIndex].execute(command, &users[userIndex]);
+    }
+}
+
 
 
 bool Server::isNicknameTaken(const std::string &nick) {
@@ -337,6 +347,7 @@ void Server::run()
         }
         if (FD_ISSET(serverSocket, &readfds)) {
             acceptConnection();
+            std::cout << GREEN << "Client connected" << RESET << std::endl;
         }
         handleClientMessages();
     }

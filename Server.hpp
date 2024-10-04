@@ -96,6 +96,7 @@ public:
 	static void handleClientDisconnection(size_t i);
 	static bool isNicknameTaken(const std::string& nickname);
 	static bool isUsernameTaken(const std::string& username);
+	static void processCommand(int sd, const std::string& command);
 	// static void showUsers(void);
 	// static void showChannels(void);
 	// static std::string getPassword(void);
