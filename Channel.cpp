@@ -334,18 +334,18 @@ const std::vector<std::string> createEightBallResponses() {
 const std::vector<std::string> eightBallResponses = createEightBallResponses();
 
 void Command::privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user) {
-  
+
     std::vector<Channel>::iterator it_channel;
     std::vector<User>::iterator it_user;
     unsigned long i = 2;
-    
+
     // Check if the message is a request for the 8-ball
     if (splitmsg.size() > 1 && splitmsg[1] == "!8ball") {
         // Randomly select a response
         srand(time(0)); // Seed the random number generator
         int responseIndex = rand() % eightBallResponses.size();
         std::string response = receiver + " :" + eightBallResponses[responseIndex] + "\r\n";
-        
+
         // Send the response back to the user
         send(user._fd, response.c_str(), response.length(), 0);
         return; // Exit after responding to the 8-ball request
@@ -406,7 +406,7 @@ void Command::invite(std::string user, std::string channel, User user_object) {
     std::vector<Channel>::iterator it_c = channel_exist(channel);
     std::vector<User>::iterator it_s = user_exist(user);
 
-    if (it_c != Server::_channels.end()) 
+    if (it_c != Server::_channels.end())
     {
         if (it_s != Server::users.end()) {
             if (it_c->isOperator(user_object) != 1) {
@@ -505,4 +505,5 @@ void Command::kick(std::string channel, std::string user_kick, const std::vector
         ErrorMsg(user._fd, (channel + " :No such channel.\r\n"), "403");
     }
 }
+// everything with channel done by Yasin Usman
 

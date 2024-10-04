@@ -27,7 +27,7 @@ void Command::who(std::string channel_s, User user) {
 
     // Get the users in the channel
     std::vector<User> usersInChannel = it->getUsers();
-    
+
     // Use a traditional for loop to append all user nicknames
     for (std::vector<User>::iterator it_user = usersInChannel.begin(); it_user != usersInChannel.end(); ++it_user) {
         userList += it_user->_nickname + " "; // Append each user's nickname
@@ -47,7 +47,8 @@ void Command::who(std::string channel_s, User user) {
 
 
 
-void Command::mode(std::string channel_s, std::string mode, User user, std::string arg) {
+void Command::mode(std::string channel_s, std::string mode, User user, std::string arg)
+{
     std::vector<Channel>::iterator it_c;
 
     // Verify if mode string is valid and if mode is known
@@ -176,3 +177,4 @@ std::vector<std::string> Command::ft_split(std::string str, char delimiter)
 	substrings.push_back(substring);
 	return (substrings);
 }
+// Channel commands are in Channel.hpp

@@ -67,13 +67,13 @@ class Channel
 		int isMode(char m);
 		int isOperator(User user);
 		int isUser(User user);
-		void delete_from_all(User& user); 
+		void delete_from_all(User& user);
 
 		void removeUser(User& user);
 		void removeInvite(User& user);
 		void removeOperator(User& user);
 		bool isEmpty();
 };
-
+// everything with channel done by Yasin Usman
 
 #endif

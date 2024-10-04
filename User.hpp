@@ -44,8 +44,8 @@ public:
          _nickname = "";
         _password = "";
          cap = 0;
-         nick_flag = 0; 
-         user_flag = 0; 
+         nick_flag = 0;
+         user_flag = 0;
          pass_flag = 0;
 
     }
@@ -67,3 +67,4 @@ public:
 };
 
 #endif
+//done
