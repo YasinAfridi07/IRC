@@ -89,13 +89,13 @@ void Server::openSocket()
 	std::cout << BLUE << BOLD << "Waiting for incoming connections..." << RESET << std::endl;
 }
 
-//This function call will block until a client connects, at which point it 
+//This function call will block until a client connects, at which point it
 //returns a new socket descriptor for the connection, allowing you to communicate with that client.
-void Server::acceptConnection() 
+void Server::acceptConnection()
 {
     // Assume newSocket is the new socket descriptor for the connected client
     int newSocket = accept(serverSocket, (struct sockaddr*)&address, (socklen_t*)&addrlen);
-    
+
     if (newSocket < 0) {
         std::cerr << "Failed to accept connection" << std::endl;
         return;
@@ -128,18 +128,18 @@ void User::execute(std::string mes, User *user) {
     if (splitmsg.empty()) {
         return;
     }
-    
+
     Command cmd; // Create a Command object
     std::string cmdType = splitmsg.at(0);
     if (cmdType == "JOIN") {
         if (splitmsg.size() == 2) {
-            cmd.ajoin(splitmsg.at(1), "", *user);            
+            cmd.ajoin(splitmsg.at(1), "", *user);
         } else if (splitmsg.size() == 3) {
             cmd.ajoin(splitmsg.at(1), splitmsg.at(2), *user);
         } else {
             return;
         }
-    } else if (cmdType == "WHO") {   
+    } else if (cmdType == "WHO") {
         if (splitmsg.size() == 2) {
             cmd.who(splitmsg.at(1), *user);
         } else {
@@ -200,13 +200,13 @@ void User::execute(std::string mes, User *user) {
     {
         std::string firstServerMsg = ":irc CAP * ACK multi-prefix\r\n";
         send(user->_fd, firstServerMsg.c_str(), firstServerMsg.length(), 0);
-    } 
+    }
     else if (cmdType != "NICK" && cmdType != "PASS" && cmdType != "USER" && cmdType != "CAP") {
         ErrorMsg(user->_fd, "421 :Unknown command\r\n", "421");
     }
     else if(cmdType == "NICK" || cmdType == "PASS" || cmdType == "USER")
     {
-        if (user->cap == 0) 
+        if (user->cap == 0)
         {
         std::string wlcmMsg = ":irc 001 " + user->_nickname + " :Welcome to FT_IRC, " + user->_username + "@" + Server::_hostName + "\r\n"
                       ":irc 002 " + user->_nickname + " :Your host is " + Server::_hostName + ", running version 1.0\r\n"
@@ -236,21 +236,21 @@ void Server::handleClientMessages() {
                 handleClientDisconnection(i);
             } else {
                 c_buffer[valread] = '\0';  // Null-terminate the received data
-                
+
                 // Append received data to any existing partial command
                 partialCommands[sd] += c_buffer;
-                
+
                 // Process complete commands
                 size_t pos;
                 while ((pos = partialCommands[sd].find('\n')) != std::string::npos) {
                     std::string command = partialCommands[sd].substr(0, pos);
                     partialCommands[sd] = partialCommands[sd].substr(pos + 1);
-                    
+
                     // Remove '\r' if present
                     if (!command.empty() && command.back() == '\r') {
                         command.pop_back();
                     }
-                    
+
                     processCommand(sd, command);
                 }
             }
@@ -260,7 +260,7 @@ void Server::handleClientMessages() {
 
 void Server::processCommand(int sd, const std::string& command) {
     std::vector<std::string> splitmsg = split(command);
-    
+
     if (splitmsg.empty()) {
         return;
     }
@@ -326,7 +326,7 @@ bool Server::isUsernameTaken(const std::string &user) {
 }
 
 
-void Server::run() 
+void Server::run()
 {
     while (true) {
         FD_ZERO(&readfds);
@@ -357,7 +357,7 @@ void Server::run()
 //hi
 
 
-/* 
+/*
 
 NOTE: look the actual doc for irc: https://modern.ircdocs.horse
 
@@ -365,3 +365,4 @@ NOTE: look the actual doc for irc: https://modern.ircdocs.horse
 2. FINISH the 5 mandatory welcome name-replays
 3. send Message of the Day (MOTD)
  */
+// done
