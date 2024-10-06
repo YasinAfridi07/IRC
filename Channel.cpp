@@ -214,8 +214,10 @@ void Command::ajoin(std::string channel_s, std::string key_s, User user) {
         }
 
         // Handle key (password) for the channel
-        if (key_s != "") {
-            if (it->isMode('k') == 1) { // If channel requires a key
+        if (it->isMode('k') == 1)
+				{
+					if (key_s != "")
+						{ // If channel requires a key
                 if (key_s == it->getPass()) { // Correct key provided
                     if (it->isMode('i') == 1) { // Check invite-only mode
                         if (it->isInvited(user)) {
@@ -223,18 +225,26 @@ void Command::ajoin(std::string channel_s, std::string key_s, User user) {
                             if (it_i != it->invites.end())
                                 it->invites.erase(it_i);
                             it->addUserToChannel(user);
-                        } else {
+                        }
+												else
+												{
                             ErrorMsg(user._fd, "473 :" + it->getName() + " :Invite Only Mode is on\r\n", "473");
                             return;
                         }
-                    } else {
+                    }
+										else
+										{
                         it->addUserToChannel(user);
                     }
-                } else {
+                }
+								else
+								{
                     ErrorMsg(user._fd, "475 :" + it->getName() + " :Keypass Mode is on\r\n", "475");
                     return;
                 }
-            } else {
+            }
+						else
+						{
                 ErrorMsg(user._fd, "475 :Key Not required to join channel\r\n", "475");
                 return;
             }
@@ -334,18 +344,18 @@ const std::vector<std::string> createEightBallResponses() {
 const std::vector<std::string> eightBallResponses = createEightBallResponses();
 
 void Command::privmsg(std::string receiver, const std::vector<std::string>& splitmsg, User user) {
-  
+
     std::vector<Channel>::iterator it_channel;
     std::vector<User>::iterator it_user;
     unsigned long i = 2;
-    
+
     // Check if the message is a request for the 8-ball
     if (splitmsg.size() > 1 && splitmsg[1] == "!8ball") {
         // Randomly select a response
         srand(time(0)); // Seed the random number generator
         int responseIndex = rand() % eightBallResponses.size();
         std::string response = receiver + " :" + eightBallResponses[responseIndex] + "\r\n";
-        
+
         // Send the response back to the user
         send(user._fd, response.c_str(), response.length(), 0);
         return; // Exit after responding to the 8-ball request
@@ -406,7 +416,7 @@ void Command::invite(std::string user, std::string channel, User user_object) {
     std::vector<Channel>::iterator it_c = channel_exist(channel);
     std::vector<User>::iterator it_s = user_exist(user);
 
-    if (it_c != Server::_channels.end()) 
+    if (it_c != Server::_channels.end())
     {
         if (it_s != Server::users.end()) {
             if (it_c->isOperator(user_object) != 1) {
