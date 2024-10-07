@@ -108,4 +108,6 @@ void Channel::exec_mode(std::string mode, User &user_object, std::string arg) {
 
     }
     this->setMode(mode[1], mode[0]); // Set the mode
+		std::cout << mode[0] << std::endl;
+		std::cout << _pass << std::endl;
 }

@@ -214,8 +214,10 @@ void Command::ajoin(std::string channel_s, std::string key_s, User user) {
         }
 
         // Handle key (password) for the channel
-        if (key_s != "") {
-            if (it->isMode('k') == 1) { // If channel requires a key
+        if (it->isMode('k') == 1)
+				{
+					if (key_s != "")
+						{ // If channel requires a key
                 if (key_s == it->getPass()) { // Correct key provided
                     if (it->isMode('i') == 1) { // Check invite-only mode
                         if (it->isInvited(user)) {
@@ -223,18 +225,26 @@ void Command::ajoin(std::string channel_s, std::string key_s, User user) {
                             if (it_i != it->invites.end())
                                 it->invites.erase(it_i);
                             it->addUserToChannel(user);
-                        } else {
+                        }
+												else
+												{
                             ErrorMsg(user._fd, "473 :" + it->getName() + " :Invite Only Mode is on\r\n", "473");
                             return;
                         }
-                    } else {
+                    }
+										else
+										{
                         it->addUserToChannel(user);
                     }
-                } else {
+                }
+								else
+								{
                     ErrorMsg(user._fd, "475 :" + it->getName() + " :Keypass Mode is on\r\n", "475");
                     return;
                 }
-            } else {
+            }
+						else
+						{
                 ErrorMsg(user._fd, "475 :Key Not required to join channel\r\n", "475");
                 return;
             }
